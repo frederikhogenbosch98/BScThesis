@@ -28,7 +28,7 @@ M_band = 0.0_dp
 do gr=1,no_grps
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
-
+!print *, M11
   row = (gr-1)*2 + 1
   col = (gr-1)*2 + 1
 
@@ -45,9 +45,8 @@ do gr=1,no_grps
 
   M_band(row_band,col_band) = M22
 enddo
-
+!print *, size(M_band)
 end subroutine calc_M
-
 
 subroutine project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 use f90_kind
@@ -72,12 +71,11 @@ real(dp), dimension(nqp) :: points,weights
 call legendre_set(points,weights)
 
 phi = 0.0_dp
-
+!print *,dE
 no_grps = size(dE)
 do gr=1,no_grps
   E_low  = E_bounds(gr+1)
   E_high = E_bounds(gr)
-
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
 
@@ -95,11 +93,66 @@ do gr=1,no_grps
   phi(2*(gr-1)+1) = rhs(1) / M11
   phi(2*(gr-1)+2) = rhs(2) / M22
 enddo
-
+!print *, phi
 end subroutine project_gaussian_on_dg
 
 
-subroutine build_G_band(n,E_bounds,dE,G_band,kl_G,ku_G)
+subroutine det_bounds(E_bounds, dE, old_phi, E_bounded, phi_bounded, n_max)
+
+use quadrature
+use functions
+use f90_kind
+implicit none
+
+real(dp), dimension(:), intent(in) :: E_bounds
+real(dp), dimension(:), intent(in) :: dE
+!real(dp), intent(in) :: E_max
+!real(dp), intent(in) :: E_min
+real(dp), dimension(:), intent(in) :: old_phi
+real(dp), dimension(:), intent(out) :: E_bounded
+real(dp), dimension(:), intent(out) :: phi_bounded
+integer :: n_max
+intrinsic :: findloc
+integer :: x(1)
+real(dp) :: trial
+!print *,E_min, E_max
+E_bounded = E_bounds(n_max:n_max+39)
+phi_bounded = old_phi(2*n_max:(2*n_max)+79)
+!print *, ((2*n_max)+80)-(2*n_max)
+!I = pack([(j, j=1, size(E_bounds))],E_bounds==E_max)
+!trial = E_bounds(1)-(dE(12)*12.0_dp)
+!print *,trial
+!x = findloc(E_bounds, value=trial)
+
+!print *, E_bounded,phi_bounded
+!print *, E_bounds_new
+!print *, E_bounds([5,15])
+
+
+
+end subroutine det_bounds
+
+subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step)
+use quadrature
+use functions
+use f90_kind
+implicit none
+
+real(dp), dimension(:), intent(in) :: E_bounds
+real(dp), dimension(:), intent(in) :: phi_old
+real(dp), dimension(:), intent(in) :: E_bounds_old
+real(dp), dimension(:), intent(in) :: dE
+real(dp), dimension(:), intent(in) :: phi_bounded_old
+real(dp), dimension(:), intent(out) :: E_bounded
+real(dp), dimension(:), intent(out) :: phi_bounded
+integer :: step
+
+
+
+end subroutine    
+
+
+subroutine build_G_band(n,E_bounds,dE,G_band,kl_G,ku_G, step)
 use f90_kind
 use heterogeneous
 implicit none
@@ -110,10 +163,11 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:,:), allocatable, intent(inout) :: G_band
 integer :: kl_G
 integer :: ku_G
+integer, intent(in) :: step
 
 real(dp), parameter :: penalty = 2.0_dp
 character(len=1) :: mat
-integer :: gr,i,j,row,col,row_band,col_band,no_grps
+integer :: gr,i,j,row,col,row_band,col_band,no_grps,n_min,limit,n_max,E_step
 real(dp) :: E_low,E_high,E_g,S_A,S_E,S_low,S_high,min_dE
 real(dp) :: T_low,T_high,T_avg
 real(dp) :: A_group(2,2)
@@ -125,10 +179,28 @@ allocate(G_band(2*kl_G+ku_G+1,n))
 G_band = 0.0_dp
 
 mat="W"
-
+limit=10
 no_grps = size(dE)
+E_step = NINT(real(step/4))
+
+if (E_step<limit+1) then
+    n_min = 1
+else 
+    n_min = E_step-limit
+end if
+
+if (E_step>(size(dE)-limit)) then
+    n_max = size(dE)
+else 
+    n_max = E_step+limit
+end if
+
+!print *,"nmin = ", n_min
+!print *, "nmax = ", n_max
+
 
 do gr=1,no_grps 
+!do gr=n_min,n_max 
   E_low  = E_bounds(gr+1)
   E_high = E_bounds(gr)
   E_g = (E_low + E_high)/2.0_dp
@@ -136,7 +208,6 @@ do gr=1,no_grps
   T_low  = T(E_low,mat) 
   T_high = T(E_high,mat)
   T_avg = (T_low + T_high)/2.0_dp
-
   ! Here the factor 1/2 is incorporated
 
   T_low  = T_low  / 2.0_dp
@@ -176,6 +247,7 @@ do gr=1,no_grps
   ! Penalty term on high-E side (g-1/2)
 
   if (gr /= 1) then
+  !if (gr /= n_min) then
     min_dE = min(dE(gr),dE(gr-1))
     A_group(1,1)  = A_group(1,1)  + penalty * T_high / min_dE
     A_group(1,2)  = A_group(1,2)  + penalty * T_high / min_dE
@@ -191,6 +263,7 @@ do gr=1,no_grps
   ! Penalty term on low-E side (g+1/2)
 
   if (gr /= no_grps) then
+  !if (gr /= n_max) then  
     min_dE = min(dE(gr),dE(gr+1))
     A_group(1,1) = A_group(1,1) + penalty * T_low / min_dE
     A_group(1,2) = A_group(1,2) - penalty * T_low / min_dE
@@ -206,6 +279,7 @@ do gr=1,no_grps
   ! consistency/symmetry terms on high-E side (g-1/2)
 
   if (gr /= 1) then
+  !if (gr /= n_min) then
     A_group(1,2)  = A_group(1,2)  - T_high/dE(gr)
     A_group(2,1)  = A_group(2,1)                    - T_high/dE(gr)
     A_group(2,2)  = A_group(2,2)  - T_high/dE(gr)   - T_high/dE(gr)
@@ -218,6 +292,7 @@ do gr=1,no_grps
   ! consistency/symmetry terms on low-E side  (g+1/2)
 
   if (gr /= no_grps) then
+   !if (gr /= n_max) then
     A_group(1,2) = A_group(1,2) + T_low/dE(gr)
     A_group(2,1) = A_group(2,1)                  + T_low/dE(gr)
     A_group(2,2) = A_group(2,2) - T_low/dE(gr)   - T_low/dE(gr)
@@ -262,7 +337,6 @@ do gr=1,no_grps
 enddo
 
 end subroutine build_G_band
-
 
 
 
