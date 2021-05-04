@@ -157,11 +157,12 @@ integer :: rest_length
 rest_length = n_max - int_size
 divider = no_steps / 200
 interval = n_max - (step/200)*(rest_length / divider)
-print *, "E bounds", interval, interval+39
-print *, "phi bounds", 2*interval, (2*interval)+79
+!print *, "E bounds", interval, interval+39
+!print *, "phi bounds", 2*interval, (2*interval)+79
 E_bounded = E_bounds(interval:interval+39)
-phi_bounded = phi_old((2*interval):(2*interval)+79)
 
+!phi_bounded = phi_old((2*interval):(2*interval)+79)
+phi_bounded = phi_bounded_old
 !E_bounded = E_bounds(n_max
 
 end subroutine    

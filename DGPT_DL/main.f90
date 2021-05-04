@@ -28,6 +28,7 @@ real(dp), dimension(:,:), allocatable :: G_band
 integer, parameter :: no_dof=2*no_grps
 real(dp), dimension(no_dof) :: phi,phi_old
 real(dp) :: dE(no_grps)
+real(dp) :: dE_bounded(int_size)
 real(dp) :: E_bounds(no_grps+1)
 real(dp) :: E_bounded(int_size)
 real(dp) :: E_bounded_old(int_size)
@@ -68,7 +69,7 @@ sigma = 1.0_dp / sqrt(2.0_dp)
 
 call project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 phi_old = phi
-!print *,phi
+!print *, size(phi)
 ! Plot flux
 open(unit=12, file='data.txt')
 !do i=1,no_grps
@@ -89,12 +90,15 @@ open(unit=12, file='data.txt')
 open(unit=14, file='dataphi.txt')
 ! Calc mass matrix
 
-call calc_M(M_band,kl_M,ku_M,dE)
-!print *,"size(M_band) = ", size(M_band)
-!print *,"shape(M_band) = ",shape(M_band)
+dE_bounded = dE(1:int_size)
+!print *,dE
+call calc_M(M_band,kl_M,ku_M,dE_bounded)
+print *,"size(M_band) = ", size(M_band)
+print *,"shape(M_band) = ",shape(M_band)
+print *, dE_bounded
 n_max = 230
 call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max)
-
+phi_bounded_old = phi_bounded
 !write(14,*) phi_bounded
 !write(12,*) E_bounded
 
@@ -110,22 +114,26 @@ do step=1,2000
   ! Construct G matrix with CSD and straggling
   if (mod(step,200)==0) then    
   call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
-  write(14,*) phi_bounded
-  write(12,*) E_bounded
+  !write(14,*) phi_bounded
+  !write(12,*) E_bounded
   !print *, step
   endif
 
   !call det_E_bounds(E_bounds, dE, E_max, E_min, step)
 
-  call build_G_band(no_dof,E_bounds,dE,G_band,kl_G,ku_G,step)
+  call build_G_band(2*size(E_bounded),E_bounds,dE_bounded,G_band,kl_G,ku_G,step)
+  !print *, "G_band shape: ", shape(G_band)
   ! Do single CN step
 
-  call CN_1step(no_dof,M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_old,phi,dx)
+  call CN_1step(2*size(E_bounded),M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
 
   ! Time copy
-  phi_old = phi
+  !phi_old = phi
+  phi_bounded_old = phi_bounded
   !print *, phi
 enddo
+print *, size(phi), size(phi_bounded)
+
 
 close(12)
 close(14)
