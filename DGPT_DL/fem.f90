@@ -118,6 +118,7 @@ real(dp) :: trial
 !print *,E_min, E_max
 E_bounded = E_bounds(n_max:n_max+39)
 phi_bounded = old_phi(2*n_max:(2*n_max)+79)
+print *, 2*n_max, (2*n_max)+79
 !print *, ((2*n_max)+80)-(2*n_max)
 !I = pack([(j, j=1, size(E_bounds))],E_bounds==E_max)
 !trial = E_bounds(1)-(dE(12)*12.0_dp)
@@ -132,7 +133,7 @@ phi_bounded = old_phi(2*n_max:(2*n_max)+79)
 
 end subroutine det_bounds
 
-subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step)
+subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
 use quadrature
 use functions
 use f90_kind
@@ -145,9 +146,23 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:), intent(in) :: phi_bounded_old
 real(dp), dimension(:), intent(out) :: E_bounded
 real(dp), dimension(:), intent(out) :: phi_bounded
-integer :: step
+integer, intent(in) :: step
+integer, intent(in) :: n_max
+integer, intent(in) :: int_size
+integer, intent(in) :: no_steps
+integer :: interval
+integer :: divider
+integer :: rest_length
 
+rest_length = n_max - int_size
+divider = no_steps / 200
+interval = n_max - (step/200)*(rest_length / divider)
+print *, "E bounds", interval, interval+39
+print *, "phi bounds", 2*interval, (2*interval)+79
+E_bounded = E_bounds(interval:interval+39)
+phi_bounded = phi_old((2*interval):(2*interval)+79)
 
+!E_bounded = E_bounds(n_max
 
 end subroutine    
 

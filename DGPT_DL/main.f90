@@ -92,14 +92,12 @@ open(unit=14, file='dataphi.txt')
 call calc_M(M_band,kl_M,ku_M,dE)
 !print *,"size(M_band) = ", size(M_band)
 !print *,"shape(M_band) = ",shape(M_band)
-n_max = 220
+n_max = 230
 call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max)
 
-write(14,*) phi_bounded
-write(12,*) E_bounded
+!write(14,*) phi_bounded
+!write(12,*) E_bounded
 
-close(12)
-close(14)
 !Timing
 call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
@@ -108,10 +106,13 @@ time_init=count_0*1.0/count_rate
 !print *, size(E_bounds)
 E_bounded_old = E_bounded
 ! Stepping
-do step=1,no_steps
+do step=1,2000
   ! Construct G matrix with CSD and straggling
-  if (mod(step,100)==0) then    
-  call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step)
+  if (mod(step,200)==0) then    
+  call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
+  write(14,*) phi_bounded
+  write(12,*) E_bounded
+  !print *, step
   endif
 
   !call det_E_bounds(E_bounds, dE, E_max, E_min, step)
@@ -125,6 +126,9 @@ do step=1,no_steps
   phi_old = phi
   !print *, phi
 enddo
+
+close(12)
+close(14)
 
 call system_clock(count_1, count_rate, count_max)
 time_final = count_1*1.0/count_rate
