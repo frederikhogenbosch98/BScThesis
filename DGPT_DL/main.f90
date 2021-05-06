@@ -18,7 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=40
+integer, parameter :: int_size=25
+integer, parameter :: n_max=240
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -34,8 +35,9 @@ real(dp) :: E_bounded(int_size)
 real(dp) :: E_bounded_old(int_size)
 real(dp) :: phi_bounded(int_size*2)
 real(dp) :: phi_bounded_old(int_size*2)
+real(dp) :: phi_non_CN(int_size*2)
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
-integer  :: gr,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M,n_max
+integer  :: gr,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 
 ! timing variables
 integer count_0, count_1
@@ -69,6 +71,7 @@ sigma = 1.0_dp / sqrt(2.0_dp)
 
 call project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 phi_old = phi
+
 !print *, size(phi)
 ! Plot flux
 open(unit=12, file='data.txt')
@@ -89,40 +92,34 @@ open(unit=12, file='data.txt')
 !enddo
 open(unit=14, file='dataphi.txt')
 ! Calc mass matrix
-
+!write(14,*) phi
 dE_bounded = dE(1:int_size)
 !print *,dE
 call calc_M(M_band,kl_M,ku_M,dE_bounded)
-print *,"size(M_band) = ", size(M_band)
-print *,"shape(M_band) = ",shape(M_band)
-print *, dE_bounded
-n_max = 230
-call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max)
+!print *,"size(M_band) = ", size(M_band)
+!print *, shape(phi)
+!print *,M_band
+call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max, int_size)
 phi_bounded_old = phi_bounded
-!write(14,*) phi_bounded
+write(14,*) phi_bounded
 !write(12,*) E_bounded
 
+E_bounded_old = E_bounded
 !Timing
 call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
 
-!print *, size(phi)
-!print *, size(E_bounds)
-E_bounded_old = E_bounded
 ! Stepping
 do step=1,2000
   ! Construct G matrix with CSD and straggling
-  if (mod(step,200)==0) then    
+  if (mod(step,100)==0) then    
   call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
-  !write(14,*) phi_bounded
-  !write(12,*) E_bounded
   !print *, step
+  phi_non_cn = phi_bounded
   endif
 
-  !call det_E_bounds(E_bounds, dE, E_max, E_min, step)
 
   call build_G_band(2*size(E_bounded),E_bounds,dE_bounded,G_band,kl_G,ku_G,step)
-  !print *, "G_band shape: ", shape(G_band)
   ! Do single CN step
 
   call CN_1step(2*size(E_bounded),M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
@@ -130,37 +127,52 @@ do step=1,2000
   ! Time copy
   !phi_old = phi
   phi_bounded_old = phi_bounded
-  !print *, phi
 enddo
-print *, size(phi), size(phi_bounded)
-
-
-close(12)
-close(14)
 
 call system_clock(count_1, count_rate, count_max)
 time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
+
+!write(14,*) phi_non_cn
+!print *, E_bounded
+write(12,*) E_bounded
+
+close(12)
+close(14)
+
 print *,"elasped time: ",elapsed_time
+
+
 
 !print *,"size of phi = ", size(phi)
 !print *,"shape of phi = ", shape(phi)
 !print *,"size(G_band) = ", shape(G_band)
 ! Plot flux
-do gr=no_grps,1,-1
-    E_low  = E_bounds(gr+1)
-    E_high = E_bounds(gr)
-    phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
+!do gr=no_grps,1,-1
+!    E_low  = E_bounds(gr+1)
+!    E_high = E_bounds(gr)
+!    phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
+!    phi_high = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
 !    print *,E_low,  phi_low
-!    print *,E_high, phi_high
-    !write(14,*) phi_high
-    !write(12,*) E_high
-enddo
+!   print *,E_high, phi_high
+!    write(14,*) phi_high
+!    write(12,*) E_high
+!enddo
 
-!close(14)
-!close(12)
+do gr=int_size-1, 1, -1
+    E_low = E_bounded(gr+1)
+    E_high = E_bounded(gr)
+    phi_low = phi_bounded(2*(gr-1)+1) - phi(2*(gr-1)+2)
+    phi_high = phi_bounded(2*(gr-1)+1) + phi(2*(gr-1)+2)
+!    print *, E_low, phi_low
+!    print *, E_high, phi_high
+    write(14,*) phi_high
+    write(12,*) E_high
+
+enddo
+close(14)
+close(12)
 
 
 end program test

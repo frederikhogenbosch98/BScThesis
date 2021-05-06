@@ -27,6 +27,8 @@ y_size = size(y)
 ab_size_1 = size(ab,1)
 ab_size_2 = size(ab,2)
 
+!print *, x_size, y_size, ab_size_1, ab_size_2
+
 if (x_size < n) STOP 'band_matvec: x too short'
 if (y_size < n) STOP 'band_matvec: y too short'
 if (ab_size_1 < 2*kl + ku + 1) STOP 'band_matvec: ab too small'
