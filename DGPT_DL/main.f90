@@ -38,7 +38,7 @@ real(dp) :: phi_bounded_old(int_size*2)
 real(dp) :: phi_non_CN(int_size*2)
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
-
+integer  :: updated
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
@@ -101,21 +101,27 @@ call calc_M(M_band,kl_M,ku_M,dE_bounded)
 !print *,M_band
 call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max, int_size)
 phi_bounded_old = phi_bounded
-write(14,*) phi_bounded
 !write(12,*) E_bounded
-
+updated = 0
 E_bounded_old = E_bounded
 !Timing
 call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
-
+!print *, phi_bounded
 ! Stepping
 do step=1,2000
+    !print *, phi_bounded(2*int_size)
   ! Construct G matrix with CSD and straggling
-  if (mod(step,100)==0) then    
-  call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
-  !print *, step
-  phi_non_cn = phi_bounded
+  if (phi_bounded(int_size*2)>0.0005) then
+  !if (mod(step,100)==0) then   
+    print *, phi_bounded
+    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps, updated)
+    !print *, step
+    print *, phi_bounded
+    updated = updated + 1
+    !print *, "updated phi: ", phi_bounded
+    phi_non_cn = phi_bounded
+
   endif
 
 
@@ -134,6 +140,7 @@ time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
 
+write(14,*) phi_bounded
 !write(14,*) phi_non_cn
 !print *, E_bounded
 write(12,*) E_bounded

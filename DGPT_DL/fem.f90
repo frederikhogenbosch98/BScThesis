@@ -134,7 +134,7 @@ phi_bounded = old_phi(2*n_max:(2*n_max)+(2*int_size)-1)
 
 end subroutine det_bounds
 
-subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps)
+subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated)
 use quadrature
 use functions
 use f90_kind
@@ -151,6 +151,7 @@ integer, intent(in) :: step
 integer, intent(in) :: n_max
 integer, intent(in) :: int_size
 integer, intent(in) :: no_steps
+integer, intent(in) :: updated
 integer :: interval
 integer :: divider
 integer :: rest_length
@@ -158,36 +159,46 @@ integer :: slowing_fact
 integer :: fill
 real(dp), dimension(size(phi_old)) :: phi_proj
 integer :: bounded_f
+integer :: new_interval
 
 slowing_fact = 1.0_dp
 rest_length = n_max - int_size
 divider = no_steps / 10
 !print *, (step/200)*(rest_length/divider)/slowing_fact
-interval = n_max + (step/100)*(rest_length / divider)*slowing_fact
+!interval = n_max + (step/100)*(rest_length / divider)*slowing_fact
+
+new_interval = n_max + updated*5
+interval = n_max + (updated-1)*5
+print *, interval, size(E_bounds)-int_size
+if (interval>(size(E_bounds)-int_size-40)) then
+    interval = size(E_bounds)-1-int_size
+    new_interval = size(E_bounds)-1-int_size
+    print *, "larger"
+endif
 !print *, interval, interval+int_size-1
 !print *, "E bounds", interval, interval+int_size-1
-!print *, "phi bounds", 2*interval, (2*interval)+(2*int_size)-1
+print *, "phi bounds", 2*interval, (2*interval)+(2*int_size)-1
 E_bounded = E_bounds(interval:interval+int_size-1)
 !print *, E_bounded
 do fill=1,size(phi_proj)
     bounded_f = fill-2*interval
     if (fill<2*interval) then
         phi_proj(fill) = 0.0_dp
-    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size)-1)) then
+    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
     end if
 
 enddo
-
+!print *, phi_proj
+!print *, "int: ", interval
+!print *, "new int: ", new_interval
 !print *, phi_proj
 !phi_proj = phi_bounded_old
-phi_bounded = phi_proj((2*interval):(2*interval)+((2*int_size)-1))
-
+phi_bounded = phi_proj((2*new_interval):(2*new_interval)+((2*int_size)-1))
 !phi_bounded = phi_bounded_old
 !E_bounded = E_bounds(n_max
-
 end subroutine    
 
 
