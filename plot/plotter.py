@@ -12,7 +12,9 @@ print(len(y))
 
 print(y)
 
-plt.plot(y)
-plt.title('phi bounded')
+plt.plot(x, label='before update')
+plt.plot(y, label='after update')
+plt.legend()
+plt.title('phi')
 plt.show()
 

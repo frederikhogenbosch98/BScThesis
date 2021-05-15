@@ -173,7 +173,6 @@ print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
     interval = size(E_bounds)-1-int_size
     new_interval = size(E_bounds)-1-int_size
-    print *, "larger"
 endif
 !print *, interval, interval+int_size-1
 !print *, "E bounds", interval, interval+int_size-1
@@ -388,6 +387,31 @@ enddo
 
 end subroutine build_G_band
 
+
+subroutine plot(E, phi, E_low, E_high, phi_low, phi_high, E_avg, phi_avg)
+
+use f90_kind
+implicit none
+real(dp), dimension(:), intent(in) :: E
+real(dp), dimension(:), intent(in) :: phi
+real(dp), dimension(:), intent(out) :: E_low
+real(dp), dimension(:),  intent(out) :: E_high
+real(dp), dimension(:), intent(out) :: phi_low
+real(dp), dimension(:), intent(out) :: phi_high
+real(dp), dimension(:), intent(out) :: E_avg
+real(dp), dimension(:), intent(out) :: phi_avg
+integer :: gr
+
+do gr=size(E)-1,1,-1
+    E_low(gr) = E(gr+1)
+    E_high(gr) = E(gr)
+    phi_low(gr) = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
+    phi_high(gr) = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
+    phi_avg(gr) = (phi_low(gr)+phi_high(gr))/2
+    E_avg(gr) = (E_low(gr)+E_high(gr))/2 
+enddo
+
+end subroutine
 
 
 end module fem
