@@ -27,6 +27,8 @@ real(dp) :: dx
 integer :: info
 integer, dimension(n) :: ipiv
 real(dp), dimension(n) :: rhs
+!print *, 'CNstep'
+!print *,sol_old
 
 rhs = 0.0_dp
 call band_matvec(n,M_band,kl_M,ku_M,1.0_dp/dx,        sol_old,rhs,.false.)

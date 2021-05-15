@@ -117,7 +117,7 @@ intrinsic :: findloc
 integer :: x(1)
 real(dp) :: trial
 !print *,E_min, E_max
-E_bounded = E_bounds(n_max:n_max+int_size-1)
+E_bounded = E_bounds(n_max:n_max+int_size)
 phi_bounded = old_phi(2*n_max:(2*n_max)+(2*int_size)-1)
 !print *, 2*n_max, (2*n_max)+79
 !print *, ((2*n_max)+80)-(2*n_max)
@@ -158,8 +158,10 @@ integer :: rest_length
 integer :: slowing_fact
 integer :: fill
 real(dp), dimension(size(phi_old)) :: phi_proj
+real(dp), dimension(size(E_bounds)) :: phi_high
 integer :: bounded_f
 integer :: new_interval
+integer :: lp
 
 slowing_fact = 1.0_dp
 rest_length = n_max - int_size
@@ -171,13 +173,13 @@ new_interval = n_max + updated*5
 interval = n_max + (updated-1)*5
 print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
-    interval = size(E_bounds)-1-int_size
-    new_interval = size(E_bounds)-1-int_size
+    interval = size(E_bounds)-int_size
+    new_interval = size(E_bounds)-int_size
 endif
 !print *, interval, interval+int_size-1
 !print *, "E bounds", interval, interval+int_size-1
-print *, "phi bounds", 2*interval, (2*interval)+(2*int_size)-1
-E_bounded = E_bounds(interval:interval+int_size-1)
+!print *, "phi bounds", 2*interval, (2*interval)+(2*int_size)-1
+E_bounded = E_bounds(interval:interval+int_size)
 !print *, E_bounded
 do fill=1,size(phi_proj)
     bounded_f = fill-2*interval
@@ -190,6 +192,13 @@ do fill=1,size(phi_proj)
     end if
 
 enddo
+
+do lp=size(E_bounds)-1,1,-1
+    phi_high(lp) = phi_proj(2*(lp-1)+1)+phi_proj(2*(lp-1)+2)
+enddo
+
+
+write (14,*) phi_high
 !print *, phi_proj
 !print *, "int: ", interval
 !print *, "new int: ", new_interval
@@ -395,16 +404,17 @@ implicit none
 real(dp), dimension(:), intent(in) :: E
 real(dp), dimension(:), intent(in) :: phi
 real(dp), dimension(:), intent(out) :: E_low
-real(dp), dimension(:),  intent(out) :: E_high
+real(dp), dimension(:), intent(out) :: E_high
 real(dp), dimension(:), intent(out) :: phi_low
 real(dp), dimension(:), intent(out) :: phi_high
 real(dp), dimension(:), intent(out) :: E_avg
 real(dp), dimension(:), intent(out) :: phi_avg
 integer :: gr
+!print *, phi
 
 do gr=size(E)-1,1,-1
-    E_low(gr) = E(gr+1)
-    E_high(gr) = E(gr)
+    !E_low(gr) = E(gr+1)
+    !E_high(gr) = E(gr)
     phi_low(gr) = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
     phi_high(gr) = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
     phi_avg(gr) = (phi_low(gr)+phi_high(gr))/2
