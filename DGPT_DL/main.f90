@@ -27,7 +27,7 @@ real(dp), dimension(:,:), allocatable :: M_band
 real(dp), dimension(:,:), allocatable :: G_band
 
 integer, parameter :: no_dof=2*no_grps
-real(dp), dimension(no_dof) :: phi,phi_old
+real(dp), dimension(no_dof) :: phi,phi_old,phi_un
 real(dp) :: dE(no_grps)
 real(dp) :: dE_bounded(int_size)
 real(dp) :: E_bounds(no_grps+1)
@@ -35,11 +35,12 @@ real(dp) :: E_bounded(int_size+1)
 real(dp) :: E_bounded_old(int_size+1)
 real(dp) :: phi_bounded(int_size*2)
 real(dp) :: phi_bounded_old(int_size*2)
+real(dp) :: phi_bounded_un(int_size*2)
 real(dp) :: phi_non_CN(int_size*2)
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size*2) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
-integer  :: gr,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
+integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: updated
 ! timing variables
 integer count_0, count_1
@@ -73,7 +74,7 @@ sigma = 1.0_dp / sqrt(2.0_dp)
 
 call project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 phi_old = phi
-
+phi_un = phi
 !print *, size(phi)
 ! Plot flux
 open(unit=12, file='data.txt')
@@ -94,7 +95,6 @@ open(unit=12, file='data.txt')
 !enddo
 open(unit=14, file='dataphi.txt')
 ! Calc mass matrix
-!write(14,*) phi
 dE_bounded = dE(1:int_size)
 !print *,dE
 
@@ -103,9 +103,9 @@ call calc_M(M_band,kl_M,ku_M,dE_bounded)
 !print *,"size(M_band) = ", size(M_band)
 !print *, shape(phi)
 !print *,M_band
-call det_bounds(E_bounds, dE, phi_old, E_bounded, phi_bounded, n_max, int_size)
+call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
 phi_bounded_old = phi_bounded
-!write(12,*) E_bounded
+phi_bounded_un = phi_bounded
 updated = 0
 E_bounded_old = E_bounded
 !Timing
@@ -113,19 +113,19 @@ call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
 !print *, phi_bounded
 ! Stepping
-do step=1,200
+do step=1,14
   ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)>0.0001 .AND. updated<8) then
-  !if (phi_bounded(int_size*2)>0.0005) then
+  !if (phi_bounded(int_size*2)>0.0001 .AND. updated<8) then
+  if (phi_bounded(int_size*2)>5) then
   !if (mod(step,100)==0) then   
     print *, 'updated'
     !print *,phi_bounded
-    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
+!    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
     !print *, phi_bounded(int_size*2)
 !    write(12,*) phi_highb
     call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps, updated)
-    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    print *, step
+!    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
+!    print *, step
 !    write(14,*) phi_highb
     !print *,phi_bounded
     updated = updated + 1
@@ -134,13 +134,13 @@ do step=1,200
   endif
 
     phi_bounded_old = phi_bounded
-  call build_G_band(2*size(E_bounded)-2,E_bounded,dE_bounded,G_band,kl_G,ku_G,step)
+  call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
   ! Do single CN step
 
-  call CN_1step(2*size(E_bounded)-2,M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
+  call CN_1step(size(phi_bounded),M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
 
   ! Time copy
-  !phi_old = phi
+  phi_old = phi
   phi_bounded_old = phi_bounded
 enddo
 
@@ -149,30 +149,30 @@ time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
 print *,"elasped time: ",elapsed_time
-
 ! Plot flux
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
+    phi_high = phi_un(2*(gr-1)+1) + phi_un(2*(gr-1)+2)
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
-!    write(14,*) phi_high
+    !write(14,*) phi_high
 !    write(12,*) E_high
 enddo
+!print *,phi_high
 
-!do gr=int_size-1, 1, -1
+do grdos=int_size,1,-1
 !    E_low = E_bounded(gr+1)
 !    E_high = E_bounded(gr)
 !    phi_low = phi_bounded(2*(gr-1)+1) - phi(2*(gr-1)+2)
-!    phi_high = phi_bounded(2*(gr-1)+1) + phi(2*(gr-1)+2)
+    phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
 !    print *, E_low, phi_low
 !    print *, E_high, phi_high
-!    write(14,*) phi_low
+    write(14,*) phi_high
 !    write(12,*) E_high
 
-!enddo
+enddo
 close(14)
 close(12)
 

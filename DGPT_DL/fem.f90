@@ -97,7 +97,7 @@ enddo
 end subroutine project_gaussian_on_dg
 
 
-subroutine det_bounds(E_bounds, dE, old_phi, E_bounded, phi_bounded, n_max, int_size)
+subroutine det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
 
 use quadrature
 use functions
@@ -108,7 +108,7 @@ real(dp), dimension(:), intent(in) :: E_bounds
 real(dp), dimension(:), intent(in) :: dE
 !real(dp), intent(in) :: E_max
 !real(dp), intent(in) :: E_min
-real(dp), dimension(:), intent(in) :: old_phi
+real(dp), dimension(:), intent(in) :: phi
 real(dp), dimension(:), intent(out) :: E_bounded
 real(dp), dimension(:), intent(out) :: phi_bounded
 integer, intent(in) :: int_size
@@ -117,8 +117,10 @@ intrinsic :: findloc
 integer :: x(1)
 real(dp) :: trial
 !print *,E_min, E_max
-E_bounded = E_bounds(n_max:n_max+int_size)
-phi_bounded = old_phi(2*n_max:(2*n_max)+(2*int_size)-1)
+E_bounded = E_bounds(n_max+1:n_max+1+int_size)
+phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
+!print *, phi(480:520)
+!phi_bounded = phi(480:529)
 !print *, 2*n_max, (2*n_max)+79
 !print *, ((2*n_max)+80)-(2*n_max)
 !I = pack([(j, j=1, size(E_bounds))],E_bounds==E_max)
@@ -194,11 +196,11 @@ do fill=1,size(phi_proj)
 enddo
 
 do lp=size(E_bounds)-1,1,-1
-    phi_high(lp) = phi_proj(2*(lp-1)+1)+phi_proj(2*(lp-1)+2)
+    phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
 enddo
 
+!write (14,*) phi_high
 
-write (14,*) phi_high
 !print *, phi_proj
 !print *, "int: ", interval
 !print *, "new int: ", new_interval
@@ -210,7 +212,7 @@ phi_bounded = phi_proj((2*new_interval):(2*new_interval)+((2*int_size)-1))
 end subroutine    
 
 
-subroutine build_G_band(n,E_bounds,dE,G_band,kl_G,ku_G, step)
+subroutine build_G_band(n,E_bounds,dE,G_band,kl_G,ku_G)
 use f90_kind
 use heterogeneous
 implicit none
@@ -221,11 +223,10 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:,:), allocatable, intent(inout) :: G_band
 integer :: kl_G
 integer :: ku_G
-integer, intent(in) :: step
 
 real(dp), parameter :: penalty = 2.0_dp
 character(len=1) :: mat
-integer :: gr,i,j,row,col,row_band,col_band,no_grps,n_min,limit,n_max,E_step
+integer :: gr,i,j,row,col,row_band,col_band,no_grps
 real(dp) :: E_low,E_high,E_g,S_A,S_E,S_low,S_high,min_dE
 real(dp) :: T_low,T_high,T_avg
 real(dp) :: A_group(2,2)
@@ -237,28 +238,9 @@ allocate(G_band(2*kl_G+ku_G+1,n))
 G_band = 0.0_dp
 
 mat="W"
-limit=10
 no_grps = size(dE)
-E_step = NINT(real(step/4))
-
-if (E_step<limit+1) then
-    n_min = 1
-else 
-    n_min = E_step-limit
-end if
-
-if (E_step>(size(dE)-limit)) then
-    n_max = size(dE)
-else 
-    n_max = E_step+limit
-end if
-
-!print *,"nmin = ", n_min
-!print *, "nmax = ", n_max
-
 
 do gr=1,no_grps 
-!do gr=n_min,n_max 
   E_low  = E_bounds(gr+1)
   E_high = E_bounds(gr)
   E_g = (E_low + E_high)/2.0_dp
@@ -417,10 +399,7 @@ do gr=size(E)-1,1,-1
     !E_high(gr) = E(gr)
     phi_low(gr) = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
     phi_high(gr) = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
-    phi_avg(gr) = (phi_low(gr)+phi_high(gr))/2
-    E_avg(gr) = (E_low(gr)+E_high(gr))/2 
 enddo
-
 end subroutine
 
 
