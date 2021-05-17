@@ -12,12 +12,12 @@ print(len(y))
 
 print(y)
 
-#plt.plot(x, label='before update')
-#for k in range(len(y)):
-#   plt.plot(y[k], label='y'+str(k))
+plt.plot(x, label='end')
+for k in range(len(y)):
+    plt.plot(y[k], label='y'+str(k))
 
 
-plt.plot(y, label='y0')
+#plt.plot(y, label='y')
 #plt.plot(y[1], label='y1')
 plt.legend()
 plt.title('phi')

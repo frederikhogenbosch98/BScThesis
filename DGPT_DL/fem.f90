@@ -136,7 +136,36 @@ phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
 
 end subroutine det_bounds
 
-subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated)
+subroutine project_phi(interval, int_size, phi_bounded_old, phi_proj)
+
+use functions
+use f90_kind
+implicit none
+
+integer, intent(in) :: interval
+integer, intent(in) :: int_size
+real(dp), dimension(:), intent(in) :: phi_bounded_old
+real(dp), dimension(:), intent(out) :: phi_proj
+integer :: fill, bounded_f
+
+
+do fill=1,size(phi_proj)
+    bounded_f = fill-2*interval
+    if (fill<2*interval) then
+        phi_proj(fill) = 0.0_dp
+    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
+        phi_proj(fill) = phi_bounded_old(bounded_f)
+    else
+        phi_proj(fill) = 0.0_dp
+    end if
+
+enddo
+
+
+end subroutine
+
+
+subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max,int_size,no_steps, updated,phi_proj)
 use quadrature
 use functions
 use f90_kind
@@ -154,61 +183,41 @@ integer, intent(in) :: n_max
 integer, intent(in) :: int_size
 integer, intent(in) :: no_steps
 integer, intent(in) :: updated
-integer :: interval
-integer :: divider
-integer :: rest_length
-integer :: slowing_fact
+real(dp), dimension(:), intent(out) :: phi_proj
 integer :: fill
-real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(size(E_bounds)) :: phi_high
+integer :: interval
+!real(dp), dimension(size(phi_old)) :: phi_proj
 integer :: bounded_f
 integer :: new_interval
 integer :: lp
 
-slowing_fact = 1.0_dp
-rest_length = n_max - int_size
-divider = no_steps / 10
-!print *, (step/200)*(rest_length/divider)/slowing_fact
-!interval = n_max + (step/100)*(rest_length / divider)*slowing_fact
 
-new_interval = n_max + updated*5
-interval = n_max + (updated-1)*5
-print *, interval, size(E_bounds)-int_size
+
+new_interval = n_max + updated*(int_size/3)
+interval = n_max + (updated-1)*(int_size/3)
+!print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
     interval = size(E_bounds)-int_size
+    print *, 'at the end'
     new_interval = size(E_bounds)-int_size
 endif
-!print *, interval, interval+int_size-1
-!print *, "E bounds", interval, interval+int_size-1
-!print *, "phi bounds", 2*interval, (2*interval)+(2*int_size)-1
-E_bounded = E_bounds(interval:interval+int_size)
-!print *, E_bounded
-do fill=1,size(phi_proj)
-    bounded_f = fill-2*interval
-    if (fill<2*interval) then
-        phi_proj(fill) = 0.0_dp
-    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
-        phi_proj(fill) = phi_bounded_old(bounded_f)
-    else
-        phi_proj(fill) = 0.0_dp
-    end if
 
-enddo
+
+E_bounded = E_bounds(interval+1:interval+int_size+1)
+
+call project_phi(interval, int_size, phi_bounded_old, phi_proj)
 
 do lp=size(E_bounds)-1,1,-1
     phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
 enddo
 
-!write (14,*) phi_high
+write (14,*) phi_high
 
-!print *, phi_proj
-!print *, "int: ", interval
-!print *, "new int: ", new_interval
-!print *, phi_proj
-!phi_proj = phi_bounded_old
-phi_bounded = phi_proj((2*new_interval):(2*new_interval)+((2*int_size)-1))
-!phi_bounded = phi_bounded_old
-!E_bounded = E_bounds(n_max
+
+phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
+
+
 end subroutine    
 
 
@@ -400,6 +409,7 @@ do gr=size(E)-1,1,-1
     phi_low(gr) = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
     phi_high(gr) = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
 enddo
+
 end subroutine
 
 

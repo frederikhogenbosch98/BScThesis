@@ -18,8 +18,9 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=25
-integer, parameter :: n_max=240
+integer, parameter :: int_size=50
+!integer, parameter :: n_max=241
+integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -37,8 +38,9 @@ real(dp) :: phi_bounded(int_size*2)
 real(dp) :: phi_bounded_old(int_size*2)
 real(dp) :: phi_bounded_un(int_size*2)
 real(dp) :: phi_non_CN(int_size*2)
+real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
-real(dp), dimension(int_size*2) :: phi_lowb, phi_highb, phi_avg
+real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: updated
@@ -75,59 +77,45 @@ sigma = 1.0_dp / sqrt(2.0_dp)
 call project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 phi_old = phi
 phi_un = phi
-!print *, size(phi)
-! Plot flux
+
+
 open(unit=12, file='data.txt')
-!do i=1,no_grps
-!    print *,phi(i)
-!    write(12,*) phi(i)
-!enddo
-
-!close(12)
-
-!do gr=no_grps,1,-1
-!  E_low  = E_bounds(gr+1)
-!  E_high = E_bounds(gr)
-!  phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-!  phi_high = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
-!  print *,E_low,  phi_low
-!  print *,E_high, phi_high
-!enddo
 open(unit=14, file='dataphi.txt')
+
+
 ! Calc mass matrix
 dE_bounded = dE(1:int_size)
-!print *,dE
-
-
 call calc_M(M_band,kl_M,ku_M,dE_bounded)
-!print *,"size(M_band) = ", size(M_band)
-!print *, shape(phi)
-!print *,M_band
+
+
+
 call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
 phi_bounded_old = phi_bounded
 phi_bounded_un = phi_bounded
 updated = 0
 E_bounded_old = E_bounded
+
+
+
 !Timing
 call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
 !print *, phi_bounded
+
+
+
 ! Stepping
-do step=1,14
+do step=1,2000
   ! Construct G matrix with CSD and straggling
-  !if (phi_bounded(int_size*2)>0.0001 .AND. updated<8) then
-  if (phi_bounded(int_size*2)>5) then
+  if (phi_bounded(int_size*2)>0.001 .AND. updated<100) then
+  !if (phi_bounded(int_size*2)>0.0001) then
   !if (mod(step,100)==0) then   
-    print *, 'updated'
-    !print *,phi_bounded
-!    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    !print *, phi_bounded(int_size*2)
-!    write(12,*) phi_highb
-    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size, no_steps, updated)
-!    call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-!    print *, step
-!    write(14,*) phi_highb
-    !print *,phi_bounded
+    print *, 'updated at step: ', step
+    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
+    !write(14,*) phi_highb
+    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated, phi_proj)
+    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
+    !write(14,*) phi_highb
     updated = updated + 1
     phi_non_cn = phi_bounded
 
@@ -157,7 +145,7 @@ do gr=no_grps,1,-1
     phi_high = phi_un(2*(gr-1)+1) + phi_un(2*(gr-1)+2)
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
-    !write(14,*) phi_high
+    !write(12,*) phi_high
 !    write(12,*) E_high
 enddo
 !print *,phi_high
@@ -169,8 +157,8 @@ do grdos=int_size,1,-1
     phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
 !    print *, E_low, phi_low
 !    print *, E_high, phi_high
-    write(14,*) phi_high
-!    write(12,*) E_high
+!    write(14,*) phi_high
+!     write(12,*) E_high
 
 enddo
 close(14)
