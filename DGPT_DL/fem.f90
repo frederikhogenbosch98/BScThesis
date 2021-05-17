@@ -158,7 +158,6 @@ do fill=1,size(phi_proj)
     else
         phi_proj(fill) = 0.0_dp
     end if
-
 enddo
 
 

@@ -18,9 +18,9 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=50
-!integer, parameter :: n_max=241
-integer, parameter :: n_max=241-12
+integer, parameter :: int_size=25
+integer, parameter :: n_max=241
+!integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -138,14 +138,17 @@ elapsed_time = time_final-time_init
 
 print *,"elasped time: ",elapsed_time
 ! Plot flux
+call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
+
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi_un(2*(gr-1)+1) + phi_un(2*(gr-1)+2)
+    phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
-    !write(12,*) phi_high
+    !print *, phi_high
+    write(12,*) phi_high
 !    write(12,*) E_high
 enddo
 !print *,phi_high
