@@ -23,15 +23,21 @@ real(dp) :: dE,E_mid
 allocate(fun_E(no_nod_E))
 if (no_nod_E == 1) then
   fun_E = 1.0_dp
+if else (no_nod_E == 2) then
+    dE = E_max - E_min
+    E_mid = E_min + dE/2.0_dp
+    fun_E(1) = 1.0_dp              ! average
+    fun_E(2) = (2.d0/dE)*(E-E_mid) ! slope
+    if (scaling) then
+        fun_E(1) = fun_E(1) * (1.0_dp/dE)
+        fun_E(2) = fun_E(2) * (3.0_dp/dE)
+    endif
 else
-  dE = E_max - E_min
-  E_mid = E_min + dE/2.0_dp
-  fun_E(1) = 1.0_dp              ! average
-  fun_E(2) = (2.d0/dE)*(E-E_mid) ! slope
-  if (scaling) then
-    fun_E(1) = fun_E(1) * (1.0_dp/dE)
-    fun_E(2) = fun_E(2) * (3.0_dp/dE)
-  endif
+    dE = E_max - E_min
+    E_mid = E_min + dE/2.0_dp
+    fun_E(1) = 1.0_dp
+    fun_E(2) = 2.d0/dE*(E-E_mid)
+    fun_E(3) = ((3.0_dp/2.0_dp)*((2.0_dp*(E-E_mid))/dE)**2)-(1.0_dp/2.0_dp)
 endif
 
 end subroutine calc_shape_fun_E

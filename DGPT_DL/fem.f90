@@ -63,7 +63,7 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:), intent(out) :: phi
 
 integer :: no_grps,qp,gr
-real(dp) :: rhs(2),E_low,E_high,Jac,M11,M22,E_qp
+real(dp) :: rhs(3),E_low,E_high,Jac,M11,M22,M33,E_qp
 real(dp),allocatable, dimension(:) :: fun_E
 integer, parameter :: nqp=7
 real(dp), dimension(nqp) :: points,weights
@@ -78,20 +78,22 @@ do gr=1,no_grps
   E_high = E_bounds(gr)
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
-
+  M33 = dE(gr) / 5.0_dp 
   rhs = 0.0_dp
   Jac = dE(gr) / 2.0_dp
 
   do qp=1,nqp
     E_qp = E_low + ((points(qp) + 1.0_dp) / 2.0_dp) * dE(gr)
 
-    call calc_shape_fun_E(E_qp,E_low,E_high,2,.false.,fun_E)
-
+    call calc_shape_fun_E(E_qp,E_low,E_high,3,.false.,fun_E)
     rhs = rhs + Jac * weights(qp) * gaussian(E_qp,A,mu,sigma) * fun_E
+    
+    print *,rhs
   enddo
 
   phi(2*(gr-1)+1) = rhs(1) / M11
   phi(2*(gr-1)+2) = rhs(2) / M22
+  phi(2*(gr-1)+3) = rhs(3) / M33
 enddo
 !print *, phi
 end subroutine project_gaussian_on_dg

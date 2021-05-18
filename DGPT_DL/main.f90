@@ -27,7 +27,7 @@ real(dp),allocatable,dimension(:) :: point,weight
 real(dp), dimension(:,:), allocatable :: M_band
 real(dp), dimension(:,:), allocatable :: G_band
 
-integer, parameter :: no_dof=2*no_grps
+integer, parameter :: no_dof=3*no_grps
 real(dp), dimension(no_dof) :: phi,phi_old,phi_un
 real(dp) :: dE(no_grps)
 real(dp) :: dE_bounded(int_size)
