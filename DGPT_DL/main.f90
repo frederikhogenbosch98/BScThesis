@@ -18,7 +18,7 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=25
+integer, parameter :: int_size=50
 integer, parameter :: n_max=241
 !integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
@@ -30,6 +30,7 @@ real(dp), dimension(:,:), allocatable :: G_band
 integer, parameter :: no_dof=2*no_grps
 real(dp), dimension(no_dof) :: phi,phi_old,phi_un
 real(dp) :: dE(no_grps)
+real(dp) :: phi_plot(no_grps)
 real(dp) :: dE_bounded(int_size)
 real(dp) :: E_bounds(no_grps+1)
 real(dp) :: E_bounded(int_size+1)
@@ -121,6 +122,14 @@ do step=1,2000
 
   endif
 
+  if (mod(step,100)==0) then
+      call project_phi(n_max+updated*(int_size/3), int_size, phi_bounded_old, phi_proj)
+      do gr=no_grps,1,-1
+        phi_plot(gr)=phi_proj(2*(gr-1)+1)+phi_proj(2*(gr-1)+2)
+
+      enddo
+        write(14,*) phi_plot
+  endif
     phi_bounded_old = phi_bounded
   call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
   ! Do single CN step
@@ -148,7 +157,7 @@ do gr=no_grps,1,-1
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
     !print *, phi_high
-    write(12,*) phi_high
+    !write(12,*) phi_high
 !    write(12,*) E_high
 enddo
 !print *,phi_high

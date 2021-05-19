@@ -211,7 +211,7 @@ do lp=size(E_bounds)-1,1,-1
     phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
 enddo
 
-write (14,*) phi_high
+!write (14,*) phi_high
 
 
 phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
