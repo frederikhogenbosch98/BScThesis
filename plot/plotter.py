@@ -12,10 +12,10 @@ print(len(y))
 
 print(y)
 
-#plt.plot(np.flip(x), label='end')
-for k in range(len(y)):
-    if k%2==0:
-        plt.plot(y[k], label='y'+str(k))
+plt.plot(np.flip(x), label='end')
+#for k in range(len(y)):
+#    if k%2==0:
+#        plt.plot(y[k], label='y'+str(k))
 
 
 #plt.plot(y, label='y')

@@ -12,13 +12,13 @@ integer, intent(out) :: ku_M
 real(dp), dimension(:), intent(in) :: dE
 
 integer :: gr,no_grps,row,col,row_band,col_band,N
-real(dp) :: M11,M22
+real(dp) :: M11,M22,M33
 
 kl_M = 0
 ku_M = 0
 
 no_grps = size(dE)
-N = 2 * no_grps
+N = 3 * no_grps
 
 if (allocated(M_band)) deallocate(M_band)
 allocate(M_band(2*kl_M+ku_M+1,N))
@@ -28,22 +28,31 @@ M_band = 0.0_dp
 do gr=1,no_grps
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
+  M33 = dE(gr) / 1.0_dp
 !print *, M11
-  row = (gr-1)*2 + 1
-  col = (gr-1)*2 + 1
-
+  row = (gr-1)*3 + 1
+  col = (gr-1)*3 + 1
+!  print *, 'col M11: ', col
   row_band = kl_M + ku_M + 1 + row - col
   col_band = col
 
   M_band(row_band,col_band) = M11
 
-  row = (gr-1)*2 + 2
-  col = (gr-1)*2 + 2
-
+  row = (gr-1)*3 + 2
+  col = (gr-1)*3 + 2
+!    print *, 'col M22: ', col
   row_band = kl_M + ku_M + 1 + row - col
   col_band = col
 
   M_band(row_band,col_band) = M22
+
+  row = (gr-1)*3 + 3
+  col = (gr-1)*3 + 3
+!  print *, 'col M33: ',col
+  row_band = kl_M + ku_M + 1 + row - col
+  col_band = col
+  M_band(row_band,col_band) = M33
+
 enddo
 !print *, size(M_band)
 end subroutine calc_M
@@ -78,7 +87,7 @@ do gr=1,no_grps
   E_high = E_bounds(gr)
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
-  M33 = dE(gr) / 5.0_dp 
+  M33 = dE(gr) / 1.0_dp 
   rhs = 0.0_dp
   Jac = dE(gr) / 2.0_dp
 
@@ -87,13 +96,13 @@ do gr=1,no_grps
 
     call calc_shape_fun_E(E_qp,E_low,E_high,3,.false.,fun_E)
     rhs = rhs + Jac * weights(qp) * gaussian(E_qp,A,mu,sigma) * fun_E
+     
     
-    print *,rhs
   enddo
 
-  phi(2*(gr-1)+1) = rhs(1) / M11
-  phi(2*(gr-1)+2) = rhs(2) / M22
-  phi(2*(gr-1)+3) = rhs(3) / M33
+  phi(3*(gr-1)+1) = rhs(1) / M11
+  phi(3*(gr-1)+2) = rhs(2) / M22
+  phi(3*(gr-1)+3) = rhs(3) / M33
 enddo
 !print *, phi
 end subroutine project_gaussian_on_dg
@@ -120,7 +129,7 @@ integer :: x(1)
 real(dp) :: trial
 !print *,E_min, E_max
 E_bounded = E_bounds(n_max+1:n_max+1+int_size)
-phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
+phi_bounded = phi(3*n_max+1:(3*n_max+1)+(3*int_size)-1)
 !print *, phi(480:520)
 !phi_bounded = phi(480:529)
 !print *, 2*n_max, (2*n_max)+79
@@ -152,10 +161,10 @@ integer :: fill, bounded_f
 
 
 do fill=1,size(phi_proj)
-    bounded_f = fill-2*interval
-    if (fill<2*interval) then
+    bounded_f = fill-3*interval
+    if (fill<3*interval) then
         phi_proj(fill) = 0.0_dp
-    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
+    else if (fill>3*interval .AND. fill<((3*interval)+(3*int_size))) then
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
@@ -210,13 +219,13 @@ E_bounded = E_bounds(interval+1:interval+int_size+1)
 call project_phi(interval, int_size, phi_bounded_old, phi_proj)
 
 do lp=size(E_bounds)-1,1,-1
-    phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
+    phi_high(lp) = phi_proj(3*(lp-1)+1)-phi_proj(3*(lp-1)+2)
 enddo
 
 write (14,*) phi_high
 
 
-phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
+phi_bounded = phi_proj((3*new_interval+1):(3*new_interval+1)+((3*int_size)-1))
 
 
 end subroutine    

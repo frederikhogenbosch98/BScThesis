@@ -23,7 +23,7 @@ real(dp) :: dE,E_mid
 allocate(fun_E(no_nod_E))
 if (no_nod_E == 1) then
   fun_E = 1.0_dp
-if else (no_nod_E == 2) then
+else if (no_nod_E == 2) then
     dE = E_max - E_min
     E_mid = E_min + dE/2.0_dp
     fun_E(1) = 1.0_dp              ! average

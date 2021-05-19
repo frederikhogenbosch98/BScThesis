@@ -34,10 +34,10 @@ real(dp) :: dE_bounded(int_size)
 real(dp) :: E_bounds(no_grps+1)
 real(dp) :: E_bounded(int_size+1)
 real(dp) :: E_bounded_old(int_size+1)
-real(dp) :: phi_bounded(int_size*2)
-real(dp) :: phi_bounded_old(int_size*2)
-real(dp) :: phi_bounded_un(int_size*2)
-real(dp) :: phi_non_CN(int_size*2)
+real(dp) :: phi_bounded(int_size*3)
+real(dp) :: phi_bounded_old(int_size*3)
+real(dp) :: phi_bounded_un(int_size*3)
+real(dp) :: phi_non_CN(int_size*3)
 real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
@@ -123,7 +123,7 @@ do step=1,2000
 
     phi_bounded_old = phi_bounded
   call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
-  ! Do single CN step
+  !Do single CN step
 
   call CN_1step(size(phi_bounded),M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
 
@@ -139,12 +139,13 @@ elapsed_time = time_final-time_init
 print *,"elasped time: ",elapsed_time
 ! Plot flux
 call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
-
+!print *, phi_un
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
+    phi_high = phi_un(3*(gr-1)+1) + phi_un(3*(gr-1)+2) + phi_un(3*(gr-1)+3)
+    !print *, gr, phi_high, phi_un(3*(gr-1)+1), phi_un(3*(gr-1)+2), phi_un(3*(gr-1)+3)
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
     !print *, phi_high
