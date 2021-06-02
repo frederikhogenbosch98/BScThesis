@@ -177,6 +177,7 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:), intent(in) :: phi_bounded_old
 real(dp), dimension(:), intent(out) :: E_bounded
 real(dp), dimension(:), intent(out) :: phi_bounded
+integer, intent(in) :: interval
 integer, intent(in) :: step
 integer, intent(in) :: n_max
 integer, intent(in) :: int_size
@@ -185,16 +186,17 @@ integer, intent(in) :: updated
 real(dp), dimension(:), intent(out) :: phi_proj
 integer :: fill
 real(dp), dimension(size(E_bounds)) :: phi_high
-integer :: interval
 !real(dp), dimension(size(phi_old)) :: phi_proj
 integer :: bounded_f
 integer :: new_interval
 integer :: lp
+integer :: iphimax
 
 
-
-new_interval = n_max + updated*(int_size/3)
-interval = n_max + (updated-1)*(int_size/3)
+iphimax = MAXLOC(phi_bounded_old, DIM=1)
+print *, iphimax
+new_interval = n_max + updated*(iphimax/2)
+interval = n_max + (updated-1)*(iphimax/2)
 !print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
     interval = size(E_bounds)-int_size
