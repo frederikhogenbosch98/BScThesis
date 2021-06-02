@@ -28,7 +28,7 @@ M_band = 0.0_dp
 do gr=1,no_grps
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
-  M33 = dE(gr) / 1.0_dp
+  M33 = dE(gr) / 5.0_dp
 !print *, M11
   row = (gr-1)*3 + 1
   col = (gr-1)*3 + 1
@@ -87,7 +87,7 @@ do gr=1,no_grps
   E_high = E_bounds(gr)
   M11 = dE(gr)
   M22 = dE(gr) / 3.0_dp
-  M33 = dE(gr) / 1.0_dp 
+  M33 = dE(gr) / 5.0_dp 
   rhs = 0.0_dp
   Jac = dE(gr) / 2.0_dp
 
@@ -278,7 +278,6 @@ do gr=1,no_grps
 
   S_A    = (S_high + S_low) / 2.0_dp
   S_E    = (S_high - S_low) / 2.0_dp
-
   ! Init
 
   A_group  = 0.0_dp

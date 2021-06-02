@@ -18,8 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=25
-integer, parameter :: n_max=241
+integer, parameter :: int_size=50
+integer, parameter :: n_max=241-12
 !integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
@@ -41,7 +41,7 @@ real(dp) :: phi_non_CN(int_size*3)
 real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
-real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
+real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high, E_mid, phi_mid
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: updated
 ! timing variables
@@ -143,12 +143,13 @@ call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
-    phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
+    phi_low  = phi_un(3*(gr-1)+1) - phi_un(3*(gr-1)+2) - phi_un(3*(gr-1)+3)
     phi_high = phi_un(3*(gr-1)+1) + phi_un(3*(gr-1)+2) + phi_un(3*(gr-1)+3)
     !print *, gr, phi_high, phi_un(3*(gr-1)+1), phi_un(3*(gr-1)+2), phi_un(3*(gr-1)+3)
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
     !print *, phi_high
+    write(12,*) phi_low
     write(12,*) phi_high
 !    write(12,*) E_high
 enddo
