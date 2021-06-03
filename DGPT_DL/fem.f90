@@ -164,7 +164,7 @@ enddo
 end subroutine
 
 
-subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max,int_size,no_steps, updated,phi_proj)
+subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval,step,n_max,int_size,no_steps, updated,phi_proj, new_interval)
 use quadrature
 use functions
 use f90_kind
@@ -184,26 +184,29 @@ integer, intent(in) :: int_size
 integer, intent(in) :: no_steps
 integer, intent(in) :: updated
 real(dp), dimension(:), intent(out) :: phi_proj
+integer, intent(out) :: new_interval
 integer :: fill
 real(dp), dimension(size(E_bounds)) :: phi_high
 !real(dp), dimension(size(phi_old)) :: phi_proj
 integer :: bounded_f
-integer :: new_interval
 integer :: lp
 integer :: iphimax
-
+integer :: slide
 
 iphimax = MAXLOC(phi_bounded_old, DIM=1)
-print *, iphimax
-new_interval = n_max + updated*(iphimax/2)
-interval = n_max + (updated-1)*(iphimax/2)
+!print *, size(phi_bounded_old), size(E_bounded), iphimax
+slide = iphimax - size(E_bounded)
+print *, iphimax, slide, size(E_bounded)
+new_interval = interval + slide/2
+
 !print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
-    interval = size(E_bounds)-int_size
+    !interval = size(E_bounds)-int_size
     print *, 'at the end'
-    new_interval = size(E_bounds)-int_size
+    new_interval = size(E_bounds)-int_size-1
 endif
-
+print *, interval
+print *, new_interval
 
 E_bounded = E_bounds(interval+1:interval+int_size+1)
 

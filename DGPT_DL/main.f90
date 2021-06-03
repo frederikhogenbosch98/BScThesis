@@ -20,7 +20,7 @@ integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
 integer, parameter :: int_size=50
 integer, parameter :: n_max=241
-!integer, parameter :: n_max=241-12
+!integer, parameter :: n_max=24-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -44,7 +44,7 @@ real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
-integer  :: updated
+integer  :: updated, interval, new_interval, phi_boundary
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
@@ -104,26 +104,32 @@ time_init=count_0*1.0/count_rate
 !print *, phi_bounded
 
 
-
+interval = n_max
 ! Stepping
 do step=1,2000
+  if (step<1000) then
+      phi_boundary = 0.001
+  else 
+      phi_boundary = 0.0001
+  endif
   ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)>0.00001 .AND. updated<100) then
+  if (phi_bounded(int_size*2)> 0.000001 .AND. updated<100) then
   !if (phi_bounded(int_size*2)>0.0001) then
   !if (mod(step,100)==0) then   
     print *, 'updated at step: ', step
     !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
     !write(14,*) phi_highb
-    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated, phi_proj)
+    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size,no_steps, updated, phi_proj, new_interval)
     !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
     !write(14,*) phi_highb
     updated = updated + 1
     phi_non_cn = phi_bounded
-
+    interval = new_interval
   endif
 
   if (mod(step,100)==0) then
-      call project_phi(n_max+updated*(int_size/3), int_size, phi_bounded_old, phi_proj)
+      !print *, step
+      call project_phi(interval, int_size, phi_bounded_old, phi_proj)
       do gr=no_grps,1,-1
         phi_plot(gr)=phi_proj(2*(gr-1)+1)+phi_proj(2*(gr-1)+2)
 
