@@ -19,7 +19,7 @@ real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
 integer, parameter :: int_size=50
-integer, parameter :: n_max=241-12
+integer, parameter :: n_max=241
 !integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
@@ -41,14 +41,14 @@ real(dp) :: phi_non_CN(int_size*3)
 real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
-real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high, E_mid, phi_mid
-integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
+real(dp) :: deltaE, E_min,E_max,E_plot,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high, E_mid, phi_mid, phi_xE
+integer  :: gr,grdos,grtres,iter_coef,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: updated
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
 double precision time_init, time_final, elapsed_time
-
+real(dp), dimension(5000) :: phi_quad_plot
 
 ! Set the energy domain and discretization (uniform)
 
@@ -59,7 +59,7 @@ E_bounds(1) = E_max
 do gr=1,no_grps
   E_bounds(gr+1) = E_bounds(gr) - dE(gr)
 enddo
-
+deltaE = (E_max-E_min) / real(no_grps, dp)
 !print *,E_bounds
 !print *,dE
 dx = x_max / no_steps
@@ -149,8 +149,8 @@ do gr=no_grps,1,-1
 !   print *,E_low,  phi_low
 !   print *,E_high, phi_high
     !print *, phi_high
-    write(12,*) phi_low
-    write(12,*) phi_high
+!    write(12,*) phi_low
+!    write(12,*) phi_high
 !    write(12,*) E_high
 enddo
 !print *,phi_high
@@ -167,7 +167,18 @@ do grdos=int_size,1,-1
 
 enddo
 close(14)
+iter_coef=3*no_grps-1
+!call phi_at_E(375.3_dp, 376.0_dp, 375.0_dp, phi_un, phi_xE)
+do grtres=no_grps,1,-1
+    E_low = E_bounds(grtres+1)
+    E_high = E_bounds(grtres)
+    do gr=10, 1, -1
+        E_plot = E_low + 0.1_dp*gr
+        call phi_at_E(iter_coef, E_plot, E_high, E_low, phi_un, phi_xE)
+        write(12,*) phi_xE
+    enddo
+    iter_coef = iter_coef-3
+enddo    
+
 close(12)
-
-
 end program test

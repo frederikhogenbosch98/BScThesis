@@ -10,7 +10,6 @@ subroutine calc_shape_fun_E(E,E_min,E_max,no_nod_E,scaling,fun_E)
 ! scaling=T:    scaling
 use f90_kind
 implicit none
-
 real(dp), intent(in) :: E
 real(dp), intent(in) :: E_min
 real(dp), intent(in) :: E_max
@@ -41,5 +40,22 @@ else
 endif
 
 end subroutine calc_shape_fun_E
+
+
+subroutine return_p(E, E_avg, E_mid, p_func)
+use f90_kind
+
+implicit none
+
+real(dp), intent(in) :: E
+real(dp), intent(in) :: E_avg
+real(dp), intent(in) :: E_mid
+real(dp), dimension(3), intent(out) :: p_func
+
+p_func(1) = 1.0_dp
+p_func(2) = 2.d0/E_avg*(E-E_mid)
+p_func(3) = ((3.0_dp/2.0_dp)*((2.0_dp*(E-E_mid))/E_avg)**2)-(1.0_dp/2.0_dp)
+
+end subroutine
 
 end module shape_fun_E
