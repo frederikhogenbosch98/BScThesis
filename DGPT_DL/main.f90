@@ -113,7 +113,7 @@ do step=1,2000
       phi_boundary = 0.0001
   endif
   ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)> 0.000001 .AND. updated<100) then
+  if (phi_bounded(int_size*2)> 0.0001 .AND. updated<100) then
   !if (phi_bounded(int_size*2)>0.0001) then
   !if (mod(step,100)==0) then   
     print *, 'updated at step: ', step
