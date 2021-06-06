@@ -172,8 +172,10 @@ iter_coef=3*no_grps-1
 do grtres=no_grps,1,-1
     E_low = E_bounds(grtres+1)
     E_high = E_bounds(grtres)
-    do gr=10, 1, -1
-        E_plot = E_low + 0.1_dp*gr
+    print *, E_low, E_high
+    do gr=1, 9, 1
+        E_plot = E_low + 0.04_dp*gr
+        !print *, E_plot
         call phi_at_E(iter_coef, E_plot, E_high, E_low, phi_un, phi_xE)
         write(12,*) phi_xE
     enddo
