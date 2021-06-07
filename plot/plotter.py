@@ -18,7 +18,7 @@ plt.plot(np.flip(x), label='end')
 #        plt.plot(y[k], label='y'+str(k))
 
 
-#plt.plot(y, label='y')
+plt.plot(x, label='x')
 #plt.plot(y[1], label='y1')
 plt.legend()
 plt.title('phi')
