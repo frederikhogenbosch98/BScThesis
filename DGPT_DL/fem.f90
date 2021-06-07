@@ -222,7 +222,7 @@ do lp=size(E_bounds)-1,1,-1
     phi_high(lp) = phi_proj(3*(lp-1)+1)-phi_proj(3*(lp-1)+2)
 enddo
 
-write (14,*) phi_high
+!write (14,*) phi_high
 
 
 phi_bounded = phi_proj((3*new_interval+1):(3*new_interval+1)+((3*int_size)-1))
@@ -459,13 +459,13 @@ E_mid = E_min + E_avg/2
 
 call return_p(E, E_avg, E_mid, p_func)
 
-print *, E, E_avg, E_mid
-print *, p_func(3)
+!print *, E, E_avg, E_mid
+!print *, p_func(3)
 !phi_loc = 3*NINT(E_min/dE)
 phi_loc = iter_coef
 phi_xE = phi_coeff(phi_loc-2)*p_func(1)+phi_coeff(phi_loc-1)*p_func(2)+phi_coeff(phi_loc)*p_func(3)
 !print *,phi_coeff(phi_loc), phi_coeff(phi_loc+1)
-print *, phi_loc, phi_loc-1, phi_loc-2
+!print *, phi_loc, phi_loc-1, phi_loc-2
 end subroutine
 
 
