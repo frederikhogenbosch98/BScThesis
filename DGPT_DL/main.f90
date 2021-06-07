@@ -61,10 +61,8 @@ do gr=1,no_grps
   E_bounds(gr+1) = E_bounds(gr) - dE(gr)
 enddo
 
-!print *,E_bounds
-!print *,dE
-dx = x_max / no_steps
 
+dx = x_max / no_steps
 ! Init
 
 phi     = 0.0_dp
@@ -107,34 +105,32 @@ time_init=count_0*1.0/count_rate
 interval = n_max
 ! Stepping
 do step=1,2000
-  if (step<1000) then
-      phi_boundary = 0.001
-  else 
-      phi_boundary = 0.0001
-  endif
   ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)> 0.0001 .AND. updated<100) then
-  !if (phi_bounded(int_size*2)>0.0001) then
-  !if (mod(step,100)==0) then   
+  if (phi_bounded(int_size*2)> 0.0001) then
     print *, 'updated at step: ', step
-    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    !write(14,*) phi_highb
-    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size,no_steps, updated, phi_proj, new_interval)
-    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    !write(14,*) phi_highb
-    updated = updated + 1
+      do grdos=int_size,1,-1
+        phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
+        write(14,*) phi_high
+      enddo
+
+    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size,no_steps, updated, phi_proj, new_interval)    
+    updated = step
     phi_non_cn = phi_bounded
     interval = new_interval
+    do gr=int_size,1,-1
+        phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
+        write(12,*) phi_high
+    enddo
   endif
+
 
   if (mod(step,100)==0) then
       !print *, step
       call project_phi(interval, int_size, phi_bounded_old, phi_proj)
       do gr=no_grps,1,-1
         phi_plot(gr)=phi_proj(2*(gr-1)+1)+phi_proj(2*(gr-1)+2)
-
       enddo
-        write(14,*) phi_plot
+        !write(14,*) phi_plot
   endif
     phi_bounded_old = phi_bounded
   call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
@@ -152,6 +148,7 @@ time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
 print *,"elasped time: ",elapsed_time
+
 ! Plot flux
 call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
 
@@ -159,24 +156,11 @@ do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
-!   print *,E_low,  phi_low
-!   print *,E_high, phi_high
-    !print *, phi_high
-    !write(12,*) phi_high
-!    write(12,*) E_high
+    !phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
 enddo
-!print *,phi_high
 
 do grdos=int_size,1,-1
-!    E_low = E_bounded(gr+1)
-!    E_high = E_bounded(gr)
-!    phi_low = phi_bounded(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
-!    print *, E_low, phi_low
-!    print *, E_high, phi_high
-!    write(14,*) phi_high
-!     write(12,*) E_high
+    !phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
 
 enddo
 close(14)

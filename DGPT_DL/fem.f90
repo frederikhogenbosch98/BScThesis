@@ -116,23 +116,9 @@ integer :: n_max
 intrinsic :: findloc
 integer :: x(1)
 real(dp) :: trial
-!print *,E_min, E_max
+
 E_bounded = E_bounds(n_max+1:n_max+1+int_size)
 phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
-!print *, phi(480:520)
-!phi_bounded = phi(480:529)
-!print *, 2*n_max, (2*n_max)+79
-!print *, ((2*n_max)+80)-(2*n_max)
-!I = pack([(j, j=1, size(E_bounds))],E_bounds==E_max)
-!trial = E_bounds(1)-(dE(12)*12.0_dp)
-!print *,trial
-!x = findloc(E_bounds, value=trial)
-
-!print *, E_bounded,phi_bounded
-!print *, E_bounds_new
-!print *, E_bounds([5,15])
-
-
 
 end subroutine det_bounds
 
@@ -187,26 +173,18 @@ real(dp), dimension(:), intent(out) :: phi_proj
 integer, intent(out) :: new_interval
 integer :: fill
 real(dp), dimension(size(E_bounds)) :: phi_high
-!real(dp), dimension(size(phi_old)) :: phi_proj
 integer :: bounded_f
 integer :: lp
 integer :: iphimax
 integer :: slide
 
 iphimax = MAXLOC(phi_bounded_old, DIM=1)
-!print *, size(phi_bounded_old), size(E_bounded), iphimax
 slide = iphimax - size(E_bounded)
-print *, iphimax, slide, size(E_bounded)
 new_interval = interval + slide/2
 
-!print *, interval, size(E_bounds)-int_size
 if (interval>(size(E_bounds)-int_size-40)) then
-    !interval = size(E_bounds)-int_size
-    print *, 'at the end'
     new_interval = size(E_bounds)-int_size-1
 endif
-print *, interval
-print *, new_interval
 
 E_bounded = E_bounds(interval+1:interval+int_size+1)
 
@@ -216,7 +194,6 @@ do lp=size(E_bounds)-1,1,-1
     phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
 enddo
 
-!write (14,*) phi_high
 
 
 phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
@@ -408,8 +385,6 @@ integer :: gr
 !print *, phi
 
 do gr=size(E)-1,1,-1
-    !E_low(gr) = E(gr+1)
-    !E_high(gr) = E(gr)
     phi_low(gr) = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
     phi_high(gr) = phi(2*(gr-1)+1) + phi(2*(gr-1)+2)
 enddo
