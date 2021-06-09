@@ -105,16 +105,11 @@ implicit none
 
 real(dp), dimension(:), intent(in) :: E_bounds
 real(dp), dimension(:), intent(in) :: dE
-!real(dp), intent(in) :: E_max
-!real(dp), intent(in) :: E_min
 real(dp), dimension(:), intent(in) :: phi
 real(dp), dimension(:), intent(out) :: E_bounded
 real(dp), dimension(:), intent(out) :: phi_bounded
 integer, intent(in) :: int_size
 integer :: n_max
-intrinsic :: findloc
-integer :: x(1)
-real(dp) :: trial
 
 E_bounded = E_bounds(n_max+1:n_max+1+int_size)
 phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
@@ -133,13 +128,12 @@ real(dp), dimension(:), intent(in) :: phi_bounded_old
 real(dp), dimension(:), intent(out) :: phi_proj
 integer :: fill, bounded_f
 
-!print *, 'updated'
+
 do fill=1,size(phi_proj)
     bounded_f = fill-2*interval
     if (fill<2*interval) then
         phi_proj(fill) = 0.0_dp
     else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size)+1)) then
-!print *, fill, fill-2*interval
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
@@ -172,31 +166,35 @@ integer, intent(in) :: updated
 real(dp), dimension(:), intent(out) :: phi_proj
 integer, intent(out) :: new_interval
 integer :: fill
-real(dp), dimension(size(E_bounds)) :: phi_high
+real(dp), dimension(size(E_bounds)) :: phi_high, phi_low
 integer :: bounded_f
 integer :: lp
 integer :: iphimax
 integer :: slide
 
+! Determine maxloc phi and new interval
 iphimax = MAXLOC(phi_bounded_old, DIM=1)
 slide = iphimax - size(E_bounded)
 new_interval = interval + slide
 
+! At boundary
 if (new_interval>(size(E_bounds)-int_size)) then
     new_interval = size(E_bounds)-int_size-1
-    print *, 'end'
 endif
 
+! Project phi on empty array
 E_bounded = E_bounds(interval+1:interval+int_size+1)
-!print *, 'interval: ', 2*interval+1, 2*interval+2*int_size+1
 call project_phi(interval, int_size, phi_bounded_old, phi_proj)
 
+! For plotting
 do lp=size(E_bounds)-1,1,-1
     phi_high(lp) = phi_proj(2*(lp-1)+1)+phi_proj(2*(lp-1)+2)
+    phi_low(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
 enddo
 
+! Define E_bounded and phi_bounded at new interval
 E_bounded = E_bounds(new_interval+1:new_interval+int_size+1)
-phi_bounded = phi_proj(2*new_interval+1:(2*new_interval+1)+(2*int_size)-1)
+phi_bounded = phi_proj(2*new_interval+1:(2*new_interval)+(2*int_size))
 
 end subroutine 
 
