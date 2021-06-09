@@ -164,8 +164,9 @@ call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
-    phi_low  = phi_un(2*(gr-1)+1) + phi_un(2*(gr-1)+2)
+    phi_low  = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
     !print *, phi_low
+    write(12,*) phi_low
     !phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
 enddo
 
