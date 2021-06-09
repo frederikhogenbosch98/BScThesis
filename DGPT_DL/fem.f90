@@ -153,7 +153,7 @@ do fill=1,size(phi_proj)
     bounded_f = fill-2*interval
     if (fill<2*interval) then
         phi_proj(fill) = 0.0_dp
-    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
+    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size)+1)) then
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
