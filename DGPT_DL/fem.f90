@@ -144,15 +144,13 @@ enddo
 end subroutine
 
 
-subroutine update_bounds(E_bounds, phi_old, E_bounds_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval,step,n_max,int_size,no_steps, updated,phi_proj, new_interval)
+subroutine update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval,step,n_max,int_size,phi_proj, new_interval)
 use quadrature
 use functions
 use f90_kind
 implicit none
 
 real(dp), dimension(:), intent(in) :: E_bounds
-real(dp), dimension(:), intent(in) :: phi_old
-real(dp), dimension(:), intent(in) :: E_bounds_old
 real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:), intent(in) :: phi_bounded_old
 real(dp), dimension(:), intent(out) :: E_bounded
@@ -161,20 +159,18 @@ integer, intent(in) :: interval
 integer, intent(in) :: step
 integer, intent(in) :: n_max
 integer, intent(in) :: int_size
-integer, intent(in) :: no_steps
-integer, intent(in) :: updated
 real(dp), dimension(:), intent(out) :: phi_proj
 integer, intent(out) :: new_interval
 integer :: fill
 real(dp), dimension(size(E_bounds)) :: phi_high, phi_low
 integer :: bounded_f
 integer :: lp
-integer :: iphimax
+integer :: phimax_index
 integer :: slide
 
 ! Determine maxloc phi and new interval
-iphimax = MAXLOC(phi_bounded_old, DIM=1)
-slide = iphimax - size(E_bounded)
+phimax_index = MAXLOC(phi_bounded_old, DIM=1)
+slide = phimax_index - size(E_bounded)
 new_interval = interval + slide
 
 ! At boundary

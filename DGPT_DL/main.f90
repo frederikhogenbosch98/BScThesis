@@ -20,7 +20,6 @@ integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
 integer, parameter :: int_size=75
 integer, parameter :: n_max=241-12
-!integer, parameter :: n_max=24-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -28,7 +27,7 @@ real(dp), dimension(:,:), allocatable :: M_band
 real(dp), dimension(:,:), allocatable :: G_band
 
 integer, parameter :: no_dof=2*no_grps
-real(dp), dimension(no_dof) :: phi,phi_old,phi_un
+real(dp), dimension(no_dof) :: phi,phi_old,phi_init
 real(dp) :: dE(no_grps)
 real(dp) :: phi_plot(no_grps)
 real(dp) :: dE_bounded(int_size)
@@ -37,15 +36,12 @@ real(dp) :: E_bounded(int_size+1)
 real(dp) :: E_bounded_old(int_size+1)
 real(dp) :: phi_bounded(int_size*2)
 real(dp) :: phi_bounded_old(int_size*2)
-real(dp) :: phi_bounded_un(int_size*2)
-real(dp) :: phi_non_CN(int_size*2)
+real(dp) :: phi_bounded_init(int_size*2)
 real(dp), dimension(size(phi_old)) :: phi_proj
-real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
-real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
-integer  :: updated, interval, new_interval
-real(dp) :: phi_boundary
+integer  :: interval, new_interval
+real(dp) :: phi_update_value
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
@@ -77,7 +73,7 @@ sigma = 1.0_dp / sqrt(2.0_dp)
 
 call project_gaussian_on_dg(A,mu,sigma,E_bounds,dE,phi)
 phi_old = phi
-phi_un = phi
+phi_init = phi
 
 
 open(unit=12, file='data.txt')
@@ -92,8 +88,7 @@ call calc_M(M_band,kl_M,ku_M,dE_bounded)
 ! Init E and phi bounds
 call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
 phi_bounded_old = phi_bounded
-phi_bounded_un = phi_bounded
-updated = 0
+phi_bounded_init = phi_bounded
 E_bounded_old = E_bounded
 
 
@@ -111,25 +106,23 @@ do step=1,2000
 
   ! Define update boundary
   if (step<1500) then
-      phi_boundary = 0.001_dp
+      phi_update_value = 0.001_dp
   else
-      phi_boundary = 0.0023_dp
+      phi_update_value = 0.0023_dp
   endif
 
   ! Update E and phi bounds
-  if (phi_bounded(int_size*2)> phi_boundary) then
+  if (phi_bounded(int_size*2)> phi_update_value) then
     print *, 'updated at step: ', step
-    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size,no_steps, updated, phi_proj, new_interval)    
-    updated = step
-    phi_non_cn = phi_bounded
+    call update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size, phi_proj, new_interval)    
     interval = new_interval
   endif
 
   ! Plot phi at step
-    if(step==2000) then
-      do gr=int_size,1,-1
-        phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
-      enddo
+  if(step==2000) then
+    do gr=int_size,1,-1
+      phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
+    enddo
   endif
 
   ! Plot phi every 100 steps
@@ -139,7 +132,7 @@ do step=1,2000
       do gr=no_grps,1,-1
         phi_plot(gr)=phi_proj(2*(gr-1)+1)+phi_proj(2*(gr-1)+2)
       enddo
-        write(14,*) phi_plot
+      write(14,*) phi_plot
   endif
 
   phi_bounded_old = phi_bounded
@@ -175,8 +168,8 @@ enddo
 
 
 do gr=int_size,1,-1
-    phi_low = phi_bounded_un(2*(gr-1)+1) - phi_bounded_un(2*(gr-1)+2)
-    phi_high = phi_bounded_un(2*(gr-1)+1) + phi_bounded_un(2*(gr-1)+2)
+    phi_low = phi_bounded_init(2*(gr-1)+1) - phi_bounded_init(2*(gr-1)+2)
+    phi_high = phi_bounded_init(2*(gr-1)+1) + phi_bounded_init(2*(gr-1)+2)
 enddo
 
 
