@@ -18,8 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=100
-integer, parameter :: n_max=241-25
+integer, parameter :: int_size=75
+integer, parameter :: n_max=241-12
 !integer, parameter :: n_max=24-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
@@ -109,7 +109,7 @@ do step=1,2000
   if (step<1500) then
       phi_boundary = 0.001_dp
   else
-      phi_boundary = 0.002_dp
+      phi_boundary = 0.0023_dp
   endif
   ! Construct G matrix with CSD and straggling
   if (phi_bounded(int_size*2)> phi_boundary) then
@@ -128,9 +128,9 @@ do step=1,2000
       do grdos=int_size,1,-1
         phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
         !write(14,*) phi_high
-        print *, phi_high
+        !print *, phi_high
       enddo
-      print *, step
+      !print *, step
   endif
 
   if (mod(step,100)==0) then
