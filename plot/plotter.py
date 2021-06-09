@@ -13,13 +13,13 @@ print(len(y))
 print(y)
 
 #plt.plot(np.flip(x), label='end')
-#for k in range(len(y)):
-#    if k%1==0:
-#        plt.plot(y[k], label='y'+str(k))
+for k in range(len(y)):
+    if k%1==0:
+        plt.plot(y[k], label='y'+str(k))
 
 
-plt.plot(x, label='12')
-plt.plot(y, label='14')
+#plt.plot(x, label='12')
+#plt.plot(y, label='14')
 plt.legend()
 plt.title('phi')
 plt.show()

@@ -93,7 +93,6 @@ do gr=1,no_grps
   phi(2*(gr-1)+1) = rhs(1) / M11
   phi(2*(gr-1)+2) = rhs(2) / M22
 enddo
-!print *, phi
 end subroutine project_gaussian_on_dg
 
 
@@ -134,12 +133,13 @@ real(dp), dimension(:), intent(in) :: phi_bounded_old
 real(dp), dimension(:), intent(out) :: phi_proj
 integer :: fill, bounded_f
 
-
+!print *, 'updated'
 do fill=1,size(phi_proj)
     bounded_f = fill-2*interval
     if (fill<2*interval) then
         phi_proj(fill) = 0.0_dp
-    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size))) then
+    else if (fill>2*interval .AND. fill<((2*interval)+(2*int_size)+1)) then
+!print *, fill, fill-2*interval
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
@@ -182,24 +182,23 @@ iphimax = MAXLOC(phi_bounded_old, DIM=1)
 slide = iphimax - size(E_bounded)
 new_interval = interval + slide/2
 
-if (interval>(size(E_bounds)-int_size-40)) then
+if (new_interval>(size(E_bounds)-int_size)) then
     new_interval = size(E_bounds)-int_size-1
+    print *, 'end'
 endif
 
 E_bounded = E_bounds(interval+1:interval+int_size+1)
-
+!print *, 'interval: ', 2*interval+1, 2*interval+2*int_size+1
 call project_phi(interval, int_size, phi_bounded_old, phi_proj)
 
 do lp=size(E_bounds)-1,1,-1
-    phi_high(lp) = phi_proj(2*(lp-1)+1)-phi_proj(2*(lp-1)+2)
+    phi_high(lp) = phi_proj(2*(lp-1)+1)+phi_proj(2*(lp-1)+2)
 enddo
 
-
-
+E_bounded = E_bounds(new_interval+1:new_interval+int_size+1)
 phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
 
-
-end subroutine    
+end subroutine 
 
 
 subroutine build_G_band(n,E_bounds,dE,G_band,kl_G,ku_G)

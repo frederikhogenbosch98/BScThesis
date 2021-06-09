@@ -44,7 +44,8 @@ real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
-integer  :: updated, interval, new_interval, phi_boundary
+integer  :: updated, interval, new_interval
+real(dp) :: phi_boundary
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
@@ -60,8 +61,7 @@ E_bounds(1) = E_max
 do gr=1,no_grps
   E_bounds(gr+1) = E_bounds(gr) - dE(gr)
 enddo
-
-
+!print *, E_bounds
 dx = x_max / no_steps
 ! Init
 
@@ -105,24 +105,33 @@ time_init=count_0*1.0/count_rate
 interval = n_max
 ! Stepping
 do step=1,2000
-  ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)> 0.0001) then
-    print *, 'updated at step: ', step
-      do grdos=int_size,1,-1
-        phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
-        write(14,*) phi_high
-      enddo
 
+  if (step<1500) then
+      phi_boundary = 0.001_dp
+  else
+      phi_boundary = 0.005_dp
+  endif
+  ! Construct G matrix with CSD and straggling
+  if (phi_bounded(int_size*2)> phi_boundary) then
+    print *, 'updated at step: ', step
     call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size,no_steps, updated, phi_proj, new_interval)    
     updated = step
     phi_non_cn = phi_bounded
     interval = new_interval
     do gr=int_size,1,-1
         phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
-        write(12,*) phi_high
+!        write(12,*) phi_high
+        !print *, phi_high
     enddo
   endif
-
+    if(step==393) then
+      do grdos=int_size,1,-1
+        phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
+        write(14,*) phi_high
+        print *, phi_high
+      enddo
+      print *, step
+  endif
 
   if (mod(step,100)==0) then
       !print *, step
@@ -130,7 +139,7 @@ do step=1,2000
       do gr=no_grps,1,-1
         phi_plot(gr)=phi_proj(2*(gr-1)+1)+phi_proj(2*(gr-1)+2)
       enddo
-        !write(14,*) phi_plot
+        write(14,*) phi_plot
   endif
     phi_bounded_old = phi_bounded
   call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
