@@ -18,8 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=50
-integer, parameter :: n_max=241
+integer, parameter :: int_size=100
+integer, parameter :: n_max=241-25
 !integer, parameter :: n_max=24-12
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
@@ -109,7 +109,7 @@ do step=1,2000
   if (step<1500) then
       phi_boundary = 0.001_dp
   else
-      phi_boundary = 0.005_dp
+      phi_boundary = 0.002_dp
   endif
   ! Construct G matrix with CSD and straggling
   if (phi_bounded(int_size*2)> phi_boundary) then
@@ -124,10 +124,10 @@ do step=1,2000
         !print *, phi_high
     enddo
   endif
-    if(step==393) then
+    if(step==2000) then
       do grdos=int_size,1,-1
         phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
-        write(14,*) phi_high
+        !write(14,*) phi_high
         print *, phi_high
       enddo
       print *, step
@@ -151,7 +151,7 @@ do step=1,2000
   phi_old = phi
   phi_bounded_old = phi_bounded
 enddo
-
+print *, E_bounded
 call system_clock(count_1, count_rate, count_max)
 time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
@@ -164,13 +164,14 @@ call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
-    phi_low  = phi(2*(gr-1)+1) - phi(2*(gr-1)+2)
+    phi_low  = phi_un(2*(gr-1)+1) + phi_un(2*(gr-1)+2)
+    !print *, phi_low
     !phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
 enddo
 
 do grdos=int_size,1,-1
-    !phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
-
+    phi_high = phi_bounded_un(2*(grdos-1)+1) + phi_bounded_un(2*(grdos-1)+2)
+    !print *, phi_high
 enddo
 close(14)
 close(12)

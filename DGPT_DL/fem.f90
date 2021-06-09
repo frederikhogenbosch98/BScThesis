@@ -180,7 +180,7 @@ integer :: slide
 
 iphimax = MAXLOC(phi_bounded_old, DIM=1)
 slide = iphimax - size(E_bounded)
-new_interval = interval + slide/2
+new_interval = interval + slide
 
 if (new_interval>(size(E_bounds)-int_size)) then
     new_interval = size(E_bounds)-int_size-1
@@ -196,7 +196,7 @@ do lp=size(E_bounds)-1,1,-1
 enddo
 
 E_bounded = E_bounds(new_interval+1:new_interval+int_size+1)
-phi_bounded = phi_proj((2*new_interval+1):(2*new_interval+1)+((2*int_size)-1))
+phi_bounded = phi_proj(2*new_interval+1:(2*new_interval+1)+(2*int_size)-1)
 
 end subroutine 
 
