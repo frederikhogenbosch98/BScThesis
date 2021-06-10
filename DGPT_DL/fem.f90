@@ -421,30 +421,14 @@ enddo
 
 end subroutine
 
-!subroutine return_p(E, E_avg, E_mid, p_func)
-!use f90_kind
-!implicit none
 
-!real(dp), intent(in) :: E
-!real(dp), intent(in) :: E_avg
-!real(dp), intent(in) :: E_mid
-!real(dp), allocatable, dimension(:), intent(out) :: p_func
-
-!p_func(1) = 1.0_dp
-!p_func(2) = 2.d0/E_avg*(E-E_mid)
-!p_func(3) = ((3.0_dp/2.0_dp)*((2.0_dp*(E-E_mid))/E_avg)**2)-(1.0_dp/2.0_dp)
-
-!print *, 'enter'
-!end subroutine
-
-
-subroutine phi_at_E(iter_coef, E, E_max, E_min, phi_coeff, phi_xE)
+subroutine phi_at_E(gr, E, E_max, E_min, phi_coeff, phi_xE)
 
 use f90_kind
 use shape_fun_E
 implicit none
 
-integer, intent(in) :: iter_coef
+integer, intent(in) :: gr
 real(dp), intent(in) :: E
 real(dp), intent(in) :: E_max
 real(dp), intent(in) :: E_min
@@ -457,16 +441,11 @@ integer :: phi_loc
 E_avg = E_max - E_min
 E_mid = E_min + E_avg/2
 
+
 call return_p(E, E_avg, E_mid, p_func)
 
-!print *, E, E_avg, E_mid
-!print *, p_func(3)
-!phi_loc = 3*NINT(E_min/dE)
-phi_loc = iter_coef
-phi_xE = phi_coeff(phi_loc-2)*p_func(1)+phi_coeff(phi_loc-1)*p_func(2)+phi_coeff(phi_loc)*p_func(3)
-!print *,phi_coeff(phi_loc), phi_coeff(phi_loc+1)
-!print *, phi_loc, phi_loc-1, phi_loc-2
-end subroutine
+phi_xE = phi_coeff(3*gr-2)*p_func(1)+phi_coeff(3*gr-1)*p_func(2)+phi_coeff(3*gr)*p_func(3)
 
+end subroutine
 
 end module fem

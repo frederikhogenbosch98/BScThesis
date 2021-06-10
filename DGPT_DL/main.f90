@@ -42,7 +42,7 @@ real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp), dimension(int_size) :: E_lowb, E_highb, E_avg
 real(dp), dimension(int_size) :: phi_lowb, phi_highb, phi_avg
 real(dp) :: deltaE, E_min,E_max,E_plot,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high, E_mid, phi_mid, phi_xE
-integer  :: gr,grdos,grtres,iter_coef,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
+integer  :: gr,dE_plot,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: updated
 ! timing variables
 integer count_0, count_1
@@ -137,54 +137,43 @@ time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
 print *,"elasped time: ",elapsed_time
+
+
+
 ! Plot flux
+
 call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
-!print *, phi_un
+
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi_un(3*(gr-1)+1) - phi_un(3*(gr-1)+2) - phi_un(3*(gr-1)+3)
     phi_high = phi_un(3*(gr-1)+1) + phi_un(3*(gr-1)+2) + phi_un(3*(gr-1)+3)
-    !print *, gr, phi_high, phi_un(3*(gr-1)+1), phi_un(3*(gr-1)+2), phi_un(3*(gr-1)+3)
-!   print *,E_low,  phi_low
-!   print *,E_high, phi_high
-    !print *, phi_high
-!    write(12,*) phi_low
-    !write(12,*) phi_high
-!    write(12,*) E_high
 enddo
-!print *,phi_high
 
-do grdos=int_size,1,-1
-!    E_low = E_bounded(gr+1)
-!    E_high = E_bounded(gr)
-!    phi_low = phi_bounded(2*(gr-1)+1) - phi(2*(gr-1)+2)
-    phi_high = phi_bounded(2*(grdos-1)+1) + phi_bounded(2*(grdos-1)+2)
-!    print *, E_low, phi_low
-!    print *, E_high, phi_high
-!    write(14,*) phi_high
-!     write(12,*) E_high
+do gr=int_size,1,-1
+    E_low = E_bounded(gr+1)
+    E_high = E_bounded(gr)
+    phi_low = phi_bounded(2*(gr-1)+1) - phi_bounded(2*(gr-1)+2)
+    phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
 
 enddo
-close(14)
-iter_coef=3*no_grps
-!call phi_at_E(375.3_dp, 376.0_dp, 375.0_dp, phi_un, phi_xE)
-do grtres=no_grps,1,-1
-    E_low = E_bounds(grtres+1)
-    E_high = E_bounds(grtres)
-    !print *, E_low, E_high
-    do gr=1, 9, 1
-        E_plot = E_low + 0.04_dp*gr
+
+do gr=no_grps,1,-1
+    E_low = E_bounds(gr+1)
+    E_high = E_bounds(gr)
+
+    do dE_plot=1, 9, 1
+        E_plot = E_low + 0.04_dp*dE_plot
         print *, E_plot
-        call phi_at_E(iter_coef, E_plot, E_high, E_low, phi_un, phi_xE)
+        call phi_at_E(gr, E_plot, E_high, E_low, phi_un, phi_xE)
         write(12,*) phi_xE
     enddo
 
-    !call phi_at_E(iter_coef, E_low, E_high, E_low, phi_un, phi_xE)
-    !call phi_at_E(iter_coef, E_high, E_high, E_low, phi_un, phi_xE)
-    !write(12,*) phi_xE
-    iter_coef = iter_coef-3
 enddo    
 
 close(12)
+close(14)
+
+
 end program test
