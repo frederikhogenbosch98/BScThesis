@@ -246,7 +246,7 @@ integer :: ku_G
 real(dp), parameter :: penalty = 2.0_dp
 character(len=1) :: mat
 integer :: gr,i,j,row,col,row_band,col_band,no_grps
-real(dp) :: E_low,E_high,E_g,S_A,S_E,S_low,S_high,min_dE
+real(dp) :: E_low,E_high,E_g,S_A,S_E,S_S,S_low,S_high,min_dE
 real(dp) :: T_low,T_high,T_avg
 real(dp) :: A_group(3,3)
 real(dp) :: A_low_E(3,3)
@@ -312,65 +312,65 @@ do gr=1,no_grps
   A_high_E(3,3) = A_high_E(3,3) - S_high
   ! Volume term
       
-  A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
+  ! A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
 
-  ! Penalty term on high-E side (g-1/2)
+  ! ! Penalty term on high-E side (g-1/2)
 
-  if (gr /= 1) then
-  !if (gr /= n_min) then
-    min_dE = min(dE(gr),dE(gr-1))
-    A_group(1,1)  = A_group(1,1)  + penalty * T_high / min_dE
-    A_group(1,2)  = A_group(1,2)  + penalty * T_high / min_dE
-    A_group(2,1)  = A_group(2,1)  + penalty * T_high / min_dE
-    A_group(2,2)  = A_group(2,2)  + penalty * T_high / min_dE
+  ! if (gr /= 1) then
+  ! !if (gr /= n_min) then
+  !   min_dE = min(dE(gr),dE(gr-1))
+  !   A_group(1,1)  = A_group(1,1)  + penalty * T_high / min_dE
+  !   A_group(1,2)  = A_group(1,2)  + penalty * T_high / min_dE
+  !   A_group(2,1)  = A_group(2,1)  + penalty * T_high / min_dE
+  !   A_group(2,2)  = A_group(2,2)  + penalty * T_high / min_dE
 
-    A_high_E(1,1) = A_high_E(1,1) - penalty * T_high / min_dE
-    A_high_E(1,2) = A_high_E(1,2) + penalty * T_high / min_dE
-    A_high_E(2,1) = A_high_E(2,1) - penalty * T_high / min_dE
-    A_high_E(2,2) = A_high_E(2,2) + penalty * T_high / min_dE
-  endif
+  !   A_high_E(1,1) = A_high_E(1,1) - penalty * T_high / min_dE
+  !   A_high_E(1,2) = A_high_E(1,2) + penalty * T_high / min_dE
+  !   A_high_E(2,1) = A_high_E(2,1) - penalty * T_high / min_dE
+  !   A_high_E(2,2) = A_high_E(2,2) + penalty * T_high / min_dE
+  ! endif
 
-  ! Penalty term on low-E side (g+1/2)
+  ! ! Penalty term on low-E side (g+1/2)
 
-  if (gr /= no_grps) then
-  !if (gr /= n_max) then  
-    min_dE = min(dE(gr),dE(gr+1))
-    A_group(1,1) = A_group(1,1) + penalty * T_low / min_dE
-    A_group(1,2) = A_group(1,2) - penalty * T_low / min_dE
-    A_group(2,1) = A_group(2,1) - penalty * T_low / min_dE
-    A_group(2,2) = A_group(2,2) + penalty * T_low / min_dE
+  ! if (gr /= no_grps) then
+  ! !if (gr /= n_max) then  
+  !   min_dE = min(dE(gr),dE(gr+1))
+  !   A_group(1,1) = A_group(1,1) + penalty * T_low / min_dE
+  !   A_group(1,2) = A_group(1,2) - penalty * T_low / min_dE
+  !   A_group(2,1) = A_group(2,1) - penalty * T_low / min_dE
+  !   A_group(2,2) = A_group(2,2) + penalty * T_low / min_dE
 
-    A_low_E(1,1) = A_low_E(1,1) - penalty * T_low / min_dE
-    A_low_E(1,2) = A_low_E(1,2) - penalty * T_low / min_dE
-    A_low_E(2,1) = A_low_E(2,1) + penalty * T_low / min_dE
-    A_low_E(2,2) = A_low_E(2,2) + penalty * T_low / min_dE
-  endif
+  !   A_low_E(1,1) = A_low_E(1,1) - penalty * T_low / min_dE
+  !   A_low_E(1,2) = A_low_E(1,2) - penalty * T_low / min_dE
+  !   A_low_E(2,1) = A_low_E(2,1) + penalty * T_low / min_dE
+  !   A_low_E(2,2) = A_low_E(2,2) + penalty * T_low / min_dE
+  ! endif
 
-  ! consistency/symmetry terms on high-E side (g-1/2)
+  ! ! consistency/symmetry terms on high-E side (g-1/2)
 
-  if (gr /= 1) then
-  !if (gr /= n_min) then
-    A_group(1,2)  = A_group(1,2)  - T_high/dE(gr)
-    A_group(2,1)  = A_group(2,1)                    - T_high/dE(gr)
-    A_group(2,2)  = A_group(2,2)  - T_high/dE(gr)   - T_high/dE(gr)
+  ! if (gr /= 1) then
+  ! !if (gr /= n_min) then
+  !   A_group(1,2)  = A_group(1,2)  - T_high/dE(gr)
+  !   A_group(2,1)  = A_group(2,1)                    - T_high/dE(gr)
+  !   A_group(2,2)  = A_group(2,2)  - T_high/dE(gr)   - T_high/dE(gr)
 
-    A_high_E(1,2) = A_high_E(1,2) - T_high/dE(gr-1)
-    A_high_E(2,1) = A_high_E(2,1)                   + T_high/dE(gr)
-    A_high_E(2,2) = A_high_E(2,2) - T_high/dE(gr-1) - T_high/dE(gr)
-  endif
+  !   A_high_E(1,2) = A_high_E(1,2) - T_high/dE(gr-1)
+  !   A_high_E(2,1) = A_high_E(2,1)                   + T_high/dE(gr)
+  !   A_high_E(2,2) = A_high_E(2,2) - T_high/dE(gr-1) - T_high/dE(gr)
+  ! endif
 
-  ! consistency/symmetry terms on low-E side  (g+1/2)
+  ! ! consistency/symmetry terms on low-E side  (g+1/2)
 
-  if (gr /= no_grps) then
-   !if (gr /= n_max) then
-    A_group(1,2) = A_group(1,2) + T_low/dE(gr)
-    A_group(2,1) = A_group(2,1)                  + T_low/dE(gr)
-    A_group(2,2) = A_group(2,2) - T_low/dE(gr)   - T_low/dE(gr)
+  ! if (gr /= no_grps) then
+  !  !if (gr /= n_max) then
+  !   A_group(1,2) = A_group(1,2) + T_low/dE(gr)
+  !   A_group(2,1) = A_group(2,1)                  + T_low/dE(gr)
+  !   A_group(2,2) = A_group(2,2) - T_low/dE(gr)   - T_low/dE(gr)
 
-    A_low_E(1,2) = A_low_E(1,2) + T_low/dE(gr+1)
-    A_low_E(2,1) = A_low_E(2,1)                  - T_low/dE(gr)
-    A_low_E(2,2) = A_low_E(2,2) - T_low/dE(gr+1) - T_low/dE(gr)
-  endif
+  !   A_low_E(1,2) = A_low_E(1,2) + T_low/dE(gr+1)
+  !   A_low_E(2,1) = A_low_E(2,1)                  - T_low/dE(gr)
+  !   A_low_E(2,2) = A_low_E(2,2) - T_low/dE(gr+1) - T_low/dE(gr)
+  ! endif
 
   do i=1,2
     row = (gr-1)*2 + i

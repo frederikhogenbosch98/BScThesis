@@ -159,7 +159,7 @@ do gr=no_grps,1,-1
     do dE_plot=1, 9, 1
         E_plot = E_low + 0.04_dp*dE_plot
     !    print *, E_plot
-        call phi_at_E(gr, E_plot, E_high, E_low, phi_un, phi_xE)
+        call phi_at_E(gr, E_plot, E_high, E_low, phi_bounded, phi_xE)
         write(12,*) phi_xE
     enddo
 
