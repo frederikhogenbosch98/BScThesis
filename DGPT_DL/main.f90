@@ -100,22 +100,15 @@ E_bounded_old = E_bounded
 !Timing
 call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
-!print *, phi_bounded
 
 
 
 ! Stepping
 do step=1,2000
   ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)>0.001 .AND. updated<100) then
-  !if (phi_bounded(int_size*2)>0.0001) then
-  !if (mod(step,100)==0) then   
+  if (phi_bounded(int_size*2)>0.001) then
     print *, 'updated at step: ', step
-    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    !write(14,*) phi_highb
     call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated, phi_proj)
-    !call plot(E_bounded, phi_bounded, E_lowb, E_highb, phi_lowb, phi_highb, E_avg, phi_avg)
-    !write(14,*) phi_highb
     updated = updated + 1
     phi_non_cn = phi_bounded
 
@@ -165,7 +158,7 @@ do gr=no_grps,1,-1
 
     do dE_plot=1, 9, 1
         E_plot = E_low + 0.04_dp*dE_plot
-        print *, E_plot
+    !    print *, E_plot
         call phi_at_E(gr, E_plot, E_high, E_low, phi_un, phi_xE)
         write(12,*) phi_xE
     enddo
