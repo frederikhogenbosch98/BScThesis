@@ -304,9 +304,9 @@ do gr=1,no_grps
             
 
   ! Quadratic term
-  A_group(3,1)  = A_group(3,1) 
-  A_group(3,2)  = A_group(3,2)
-  A_group(3,3)  = A_group(3,3) 
+  A_group(3,1)  = A_group(3,1) - S_low + 6.0_dp*((S_E/3.0_dp)-E_g*S_A) 
+  A_group(3,2)  = A_group(3,2) + S_low + 6.0_dp*(((S_A/3.0_dp)+(S_S*2.0_dp/15.0_dp))-(E_g*S_E/3.0_dp))
+  A_group(3,3)  = A_group(3,3)  - S_low + 6.0_dp*((3.0_dp / 10.0_dp * S_E)-(E_g*S_S / 5.0_dp))
   A_high_E(3,1) = A_high_E(3,1) - S_high
   A_high_E(3,2) = A_high_E(3,2) + S_high
   A_high_E(3,3) = A_high_E(3,3) - S_high
