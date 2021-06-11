@@ -164,7 +164,7 @@ do fill=1,size(phi_proj)
     bounded_f = fill-3*interval
     if (fill<3*interval) then
         phi_proj(fill) = 0.0_dp
-    else if (fill>3*interval .AND. fill<((3*interval)+(3*int_size))) then
+    else if (fill>3*interval .AND. fill<((3*interval)+(3*int_size))+1) then
         phi_proj(fill) = phi_bounded_old(bounded_f)
     else
         phi_proj(fill) = 0.0_dp
@@ -312,9 +312,9 @@ do gr=1,no_grps
   A_high_E(3,3) = A_high_E(3,3) - S_high
   ! Volume term
       
-  ! A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
+  A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
 
-  ! ! Penalty term on high-E side (g-1/2)
+  ! Penalty term on high-E side (g-1/2)
 
   ! if (gr /= 1) then
   ! !if (gr /= n_min) then

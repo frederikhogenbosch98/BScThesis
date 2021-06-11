@@ -59,7 +59,7 @@ E_bounds(1) = E_max
 do gr=1,no_grps
   E_bounds(gr+1) = E_bounds(gr) - dE(gr)
 enddo
-deltaE = (E_max-E_min) / real(no_grps, dp)
+
 !print *,E_bounds
 !print *,dE
 dx = x_max / no_steps
@@ -84,16 +84,8 @@ open(unit=14, file='dataphi.txt')
 
 
 ! Calc mass matrix
-dE_bounded = dE(1:int_size)
-call calc_M(M_band,kl_M,ku_M,dE_bounded)
+call calc_M(M_band,kl_M,ku_M,dE)
 
-
-
-call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
-phi_bounded_old = phi_bounded
-phi_bounded_un = phi_bounded
-updated = 0
-E_bounded_old = E_bounded
 
 
 
@@ -105,24 +97,15 @@ time_init=count_0*1.0/count_rate
 
 ! Stepping
 do step=1,2000
-  ! Construct G matrix with CSD and straggling
-  if (phi_bounded(int_size*2)>0.001) then
-    print *, 'updated at step: ', step
-    call update_bounds(E_bounds, phi_old, E_bounded_old, dE, phi_bounded_old, E_bounded, phi_bounded, step, n_max, int_size,no_steps, updated, phi_proj)
-    updated = updated + 1
-    phi_non_cn = phi_bounded
 
-  endif
-
-    phi_bounded_old = phi_bounded
-  call build_G_band(size(phi_bounded),E_bounded,dE_bounded,G_band,kl_G,ku_G)
+  call build_G_band(no_dof,E_bounds,dE,G_band,kl_G,ku_G)
   !Do single CN step
 
-  call CN_1step(size(phi_bounded),M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_bounded_old,phi_bounded,dx)
+  call CN_1step(no_dof,M_band,kl_M,ku_M,G_band,kl_G,ku_G,phi_old,phi,dx)
 
   ! Time copy
   phi_old = phi
-  phi_bounded_old = phi_bounded
+
 enddo
 
 call system_clock(count_1, count_rate, count_max)
@@ -144,13 +127,6 @@ do gr=no_grps,1,-1
     phi_high = phi_un(3*(gr-1)+1) + phi_un(3*(gr-1)+2) + phi_un(3*(gr-1)+3)
 enddo
 
-do gr=int_size,1,-1
-    E_low = E_bounded(gr+1)
-    E_high = E_bounded(gr)
-    phi_low = phi_bounded(2*(gr-1)+1) - phi_bounded(2*(gr-1)+2)
-    phi_high = phi_bounded(2*(gr-1)+1) + phi_bounded(2*(gr-1)+2)
-
-enddo
 
 do gr=no_grps,1,-1
     E_low = E_bounds(gr+1)
@@ -159,7 +135,7 @@ do gr=no_grps,1,-1
     do dE_plot=1, 9, 1
         E_plot = E_low + 0.04_dp*dE_plot
     !    print *, E_plot
-        call phi_at_E(gr, E_plot, E_high, E_low, phi_bounded, phi_xE)
+        call phi_at_E(gr, E_plot, E_high, E_low, phi, phi_xE)
         write(12,*) phi_xE
     enddo
 
