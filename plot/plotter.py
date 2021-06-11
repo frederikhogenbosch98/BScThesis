@@ -20,7 +20,7 @@ for k in range(len(y)):
 
 #plt.plot(x, label='12')
 #plt.plot(y, label='14')
-plt.legend()
+#plt.legend()
 plt.title('phi')
 plt.show()
 
