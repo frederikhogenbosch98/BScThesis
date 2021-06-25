@@ -96,7 +96,7 @@ time_init=count_0*1.0/count_rate
 
 
 ! Stepping
-do step=1,2000
+do step=1,1
 
   call build_G_band(no_dof,E_bounds,dE,G_band,kl_G,ku_G)
   !Do single CN step
@@ -105,7 +105,7 @@ do step=1,2000
 
   ! Time copy
   phi_old = phi
-
+    print *,step
 enddo
 
 call system_clock(count_1, count_rate, count_max)

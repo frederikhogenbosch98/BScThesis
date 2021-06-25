@@ -22,7 +22,6 @@ N = 3 * no_grps
 
 if (allocated(M_band)) deallocate(M_band)
 allocate(M_band(2*kl_M+ku_M+1,N))
-
 M_band = 0.0_dp
 
 do gr=1,no_grps
@@ -51,7 +50,8 @@ do gr=1,no_grps
 !  print *, 'col M33: ',col
   row_band = kl_M + ku_M + 1 + row - col
   col_band = col
-  M_band(row_band,col_band) = M33
+
+  !M_band(row_band,col_band) = M33
 
 enddo
 !print *, size(M_band)
@@ -248,9 +248,9 @@ character(len=1) :: mat
 integer :: gr,i,j,row,col,row_band,col_band,no_grps
 real(dp) :: E_low,E_high,E_g,S_A,S_E,S_S,S_low,S_high,min_dE
 real(dp) :: T_low,T_high,T_avg
-real(dp) :: A_group(3,3)
-real(dp) :: A_low_E(3,3)
-real(dp) :: A_high_E(3,3)
+real(dp) :: A_group(2,2)
+real(dp) :: A_low_E(2,2)
+real(dp) :: A_high_E(2,2)
 
 if (allocated(G_band)) deallocate(G_band)
 allocate(G_band(2*kl_G+ku_G+1,n))
@@ -288,31 +288,31 @@ do gr=1,no_grps
 
   A_group(1,1)  =  A_group(1,1)  + S_low
   A_group(1,2)  =  A_group(1,2)  - S_low
-  A_group(1,3)  =  A_group(1,3)  + S_low
+!  A_group(1,3)  =  A_group(1,3)  + S_low
   A_high_E(1,1) =  A_high_E(1,1) - S_high
   A_high_E(1,2) =  A_high_E(1,2) + S_high
-  A_high_E(1,3) =  A_high_E(1,3) - S_high
+!  A_high_E(1,3) =  A_high_E(1,3) - S_high
   
   ! Slope equation
 
   A_group(2,1)  = A_group(2,1)  - S_low + 2.0_dp * S_A
   A_group(2,2)  = A_group(2,2)  + S_low + 2.0_dp / 3.0_dp * S_E
-  A_group(2,3)  = A_group(2,3)  - S_low + 2.0_dp / 5.0_dp * S_S
+!  A_group(2,3)  = A_group(2,3)  - S_low + 2.0_dp / 5.0_dp * S_S
   A_high_E(2,1) = A_high_E(2,1) - S_high
   A_high_E(2,2) = A_high_E(2,2) + S_high
-  A_high_E(2,3) = A_high_E(2,3) - S_high
+!  A_high_E(2,3) = A_high_E(2,3) - S_high
             
 
   ! Quadratic term
-  A_group(3,1)  = A_group(3,1) - S_low + 6.0_dp*((S_E/3.0_dp)-E_g*S_A) 
-  A_group(3,2)  = A_group(3,2) + S_low + 6.0_dp*(((S_A/3.0_dp)+(S_S*2.0_dp/15.0_dp))-(E_g*S_E/3.0_dp))
-  A_group(3,3)  = A_group(3,3)  - S_low + 6.0_dp*((3.0_dp / 10.0_dp * S_E)-(E_g*S_S / 5.0_dp))
-  A_high_E(3,1) = A_high_E(3,1) - S_high
-  A_high_E(3,2) = A_high_E(3,2) + S_high
-  A_high_E(3,3) = A_high_E(3,3) - S_high
+  !A_group(3,1)  = A_group(3,1) - S_low + 6.0_dp*((S_E/3.0_dp)-E_g*S_A) 
+  !A_group(3,2)  = A_group(3,2) + S_low + 6.0_dp*(((S_A/3.0_dp)+(S_S*2.0_dp/15.0_dp))-(E_g*S_E/3.0_dp))
+!  A_group(3,3)  = A_group(3,3)  - S_low + 6.0_dp*((3.0_dp / 10.0_dp * S_E)-(E_g*S_S / 5.0_dp))
+  !A_high_E(3,1) = A_high_E(3,1) - S_high
+  !A_high_E(3,2) = A_high_E(3,2) + S_high
+!  A_high_E(3,3) = A_high_E(3,3) - S_high
   ! Volume term
       
-  A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
+!  A_group(2,2) = A_group(2,2) + T_avg * 4.0_dp / dE(gr)
 
   ! Penalty term on high-E side (g-1/2)
 
@@ -406,6 +406,7 @@ do gr=1,no_grps
   enddo
 enddo
 
+print *, G_band
 end subroutine build_G_band
 
 
