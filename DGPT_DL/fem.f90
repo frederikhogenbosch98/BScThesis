@@ -171,7 +171,7 @@ integer :: slide
 ! Determine maxloc phi and new interval
 phimax_index = MAXLOC(phi_bounded_old, DIM=1)
 slide = phimax_index - size(E_bounded)
-new_interval = interval + slide
+new_interval = interval + slide/2
 
 ! At boundary
 if (new_interval>(size(E_bounds)-int_size)) then

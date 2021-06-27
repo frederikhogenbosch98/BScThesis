@@ -35,6 +35,7 @@ real(dp) :: E_bounds(no_grps+1)
 real(dp) :: E_bounded(int_size+1)
 real(dp) :: E_bounded_old(int_size+1)
 real(dp) :: phi_bounded(int_size*2)
+real(dp) :: phi_plot_subset
 real(dp) :: phi_bounded_old(int_size*2)
 real(dp) :: phi_bounded_init(int_size*2)
 real(dp), dimension(size(phi_old)) :: phi_proj
@@ -78,7 +79,8 @@ phi_init = phi
 
 open(unit=12, file='data.txt')
 open(unit=14, file='dataphi.txt')
-
+open(unit=11, file='beforeupdate.txt')
+open(unit=13, file='afterupdate.txt')
 
 ! Calc mass matrix
 dE_bounded = dE(1:int_size)
@@ -117,7 +119,7 @@ do step=1,2000
     call update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size, phi_proj, new_interval)    
     interval = new_interval
   endif
-
+    
   ! Plot phi at step
   if(step==2000) then
     do gr=int_size,1,-1
@@ -134,7 +136,6 @@ do step=1,2000
       enddo
       write(14,*) phi_plot
   endif
-
   phi_bounded_old = phi_bounded
   
   ! Construct G matrix
@@ -164,6 +165,7 @@ do gr=no_grps,1,-1
     E_high = E_bounds(gr)
     phi_low  = phi_proj(2*(gr-1)+1) - phi_proj(2*(gr-1)+2)
     phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
+    write(12,*) (phi_high + phi_low)/2.0_dp
 enddo
 
 
@@ -175,6 +177,7 @@ enddo
 
 close(14)
 close(12)
-
+close(11)
+close(13)
 
 end program test
