@@ -18,7 +18,7 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=50
+integer, parameter :: int_size=75
 integer, parameter :: n_max=241
 !integer, parameter :: n_max=241-12
 integer,parameter   :: kl_G=3
@@ -105,13 +105,13 @@ do step=1,1
 
   ! Time copy
   phi_old = phi
-    print *,step
 enddo
 
 call system_clock(count_1, count_rate, count_max)
 time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
 
+print *, "number of steps: ", steps
 print *,"elasped time: ",elapsed_time
 
 

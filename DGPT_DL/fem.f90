@@ -202,15 +202,18 @@ integer :: bounded_f
 integer :: new_interval
 integer :: lp
 
+integer :: phimax_index
+integer :: slide
 
+! Determine maxloc phi and new interval
+phimax_index = MAXLOC(phi_bounded_old, DIM=1)
+slide = phimax_index - size(E_bounded)
+new_interval = interval + slide/2
+!new_interval = n_max + updated*(int_size/3)
+!interval = n_max + (updated-1)*(int_size/3)
 
-new_interval = n_max + updated*(int_size/3)
-interval = n_max + (updated-1)*(int_size/3)
-!print *, interval, size(E_bounds)-int_size
-if (interval>(size(E_bounds)-int_size-40)) then
-    interval = size(E_bounds)-int_size
-    print *, 'at the end'
-    new_interval = size(E_bounds)-int_size
+if (new_interval>(size(E_bounds)-int_size)) then
+    new_interval = size(E_bounds)-int_size-1
 endif
 
 
@@ -224,7 +227,7 @@ enddo
 
 !write (14,*) phi_high
 
-
+E_bounded = E_bounds(new_interval+1:new_interval+int_size+1)
 phi_bounded = phi_proj((3*new_interval+1):(3*new_interval+1)+((3*int_size)-1))
 
 
@@ -406,7 +409,7 @@ do gr=1,no_grps
   enddo
 enddo
 
-print *, G_band
+print *, shape(G_band)
 end subroutine build_G_band
 
 
