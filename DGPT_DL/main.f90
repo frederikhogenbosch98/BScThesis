@@ -18,8 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=100
-integer, parameter :: n_max=241-120
+integer, parameter :: int_size=75
+integer, parameter :: n_max=241-240
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -43,6 +43,9 @@ real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
 integer  :: interval, new_interval, interval_init
 real(dp) :: phi_update_value
+logical :: end_reached
+
+
 ! timing variables
 integer count_0, count_1
 integer count_rate, count_max
@@ -100,7 +103,7 @@ time_init=count_0*1.0/count_rate
 
 ! Init interval
 interval = interval_init
-
+end_reached = .FALSE.
 
 ! Stepping
 do step=1,2000
@@ -111,10 +114,11 @@ do step=1,2000
   else
       phi_update_value = 0.0023_dp
   endif
-  ! Update E and phi bounds
-  if (phi_bounded(int_size*2)> phi_update_value) then
+  phi_update_value = 0.001_dp
+  ! Update E and phi subset
+  if ((phi_bounded(int_size*2)> phi_update_value) .and. (end_reached .eqv. .FALSE.)) then
     print *, 'updated at step: ', step
-    call update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size, phi_proj, new_interval)    
+    call update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval, step, n_max, int_size, phi_proj, new_interval, end_reached)    
     interval = new_interval
   endif
     

@@ -119,7 +119,6 @@ interval_init = (phimax_init/2)-(int_size/2)
 
 E_bounded = E_bounds(interval_init+1:interval_init+1+int_size)
 phi_bounded = phi(2*interval_init+1:(2*interval_init+1)+(2*int_size)-1)
-
 end subroutine det_bounds
 
 subroutine project_phi(interval, int_size, phi_bounded_old, phi_proj)
@@ -150,7 +149,7 @@ enddo
 end subroutine
 
 
-subroutine update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval,step,n_max,int_size,phi_proj, new_interval)
+subroutine update_bounds(E_bounds, dE, phi_bounded_old, E_bounded, phi_bounded, interval,step,n_max,int_size,phi_proj, new_interval, end_reached)
 use quadrature
 use functions
 use f90_kind
@@ -167,6 +166,7 @@ integer, intent(in) :: n_max
 integer, intent(in) :: int_size
 real(dp), dimension(:), intent(out) :: phi_proj
 integer, intent(out) :: new_interval
+logical, intent(out) :: end_reached
 integer :: fill
 real(dp), dimension(size(E_bounds)) :: phi_high, phi_low
 integer :: bounded_f
@@ -178,9 +178,9 @@ integer :: slide
 phimax_index = MAXLOC(phi_bounded_old, DIM=1)
 slide = phimax_index - size(E_bounded)
 new_interval = interval + slide/2
-
 ! At boundary
 if (new_interval>(size(E_bounds)-int_size)) then
+    end_reached = .TRUE.
     new_interval = size(E_bounds)-int_size-1
 endif
 
