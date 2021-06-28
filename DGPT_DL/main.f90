@@ -18,8 +18,8 @@ implicit none
 real(dp)            :: x_max=8.5_dp
 integer, parameter  :: no_grps=500
 integer,parameter   :: no_steps=2000
-integer, parameter :: int_size=75
-integer, parameter :: n_max=241-12
+integer, parameter :: int_size=100
+integer, parameter :: n_max=241-120
 integer,parameter   :: kl_G=3
 integer,parameter   :: ku_G=3
 real(dp),allocatable,dimension(:) :: point,weight
@@ -41,7 +41,7 @@ real(dp) :: phi_bounded_init(int_size*2)
 real(dp), dimension(size(phi_old)) :: phi_proj
 real(dp) :: E_min,E_max,eval_point,Sum,k,A,mu,sigma,dx,E_low,E_high,phi_low,phi_high
 integer  :: gr,grdos,start_row,end_row,start_col,end_col,row,col,step,pos,i,j,idx,kl_M,ku_M
-integer  :: interval, new_interval
+integer  :: interval, new_interval, interval_init
 real(dp) :: phi_update_value
 ! timing variables
 integer count_0, count_1
@@ -77,7 +77,7 @@ phi_old = phi
 phi_init = phi
 
 
-open(unit=12, file='data.txt')
+open(unit=12, file='boundedcoef.txt')
 open(unit=14, file='dataphi.txt')
 open(unit=11, file='beforeupdate.txt')
 open(unit=13, file='afterupdate.txt')
@@ -88,11 +88,10 @@ call calc_M(M_band,kl_M,ku_M,dE_bounded)
 
 
 ! Init E and phi bounds
-call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
+call det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, interval_init, int_size)
 phi_bounded_old = phi_bounded
 phi_bounded_init = phi_bounded
 E_bounded_old = E_bounded
-
 
 
 !Timing
@@ -100,7 +99,7 @@ call system_clock(count_0, count_rate, count_max)
 time_init=count_0*1.0/count_rate
 
 ! Init interval
-interval = n_max
+interval = interval_init
 
 
 ! Stepping
@@ -112,7 +111,6 @@ do step=1,2000
   else
       phi_update_value = 0.0023_dp
   endif
-
   ! Update E and phi bounds
   if (phi_bounded(int_size*2)> phi_update_value) then
     print *, 'updated at step: ', step
@@ -153,19 +151,20 @@ enddo
 call system_clock(count_1, count_rate, count_max)
 time_final = count_1*1.0/count_rate
 elapsed_time = time_final-time_init
+ 
 
 print *,"elasped time: ",elapsed_time
 
 ! Project phi
 call project_phi(no_grps-int_size, int_size, phi_bounded_old, phi_proj)
 
+write(12,*) phi_proj
 ! Plot flux
 do gr=no_grps,1,-1
     E_low  = E_bounds(gr+1)
     E_high = E_bounds(gr)
     phi_low  = phi_proj(2*(gr-1)+1) - phi_proj(2*(gr-1)+2)
     phi_high = phi_proj(2*(gr-1)+1) + phi_proj(2*(gr-1)+2)
-    write(12,*) (phi_high + phi_low)/2.0_dp
 enddo
 
 

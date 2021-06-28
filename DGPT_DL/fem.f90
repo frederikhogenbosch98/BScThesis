@@ -96,7 +96,7 @@ enddo
 end subroutine project_gaussian_on_dg
 
 
-subroutine det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, int_size)
+subroutine det_bounds(E_bounds, dE, phi, E_bounded, phi_bounded, n_max, interval_init, int_size)
 
 use quadrature
 use functions
@@ -108,11 +108,17 @@ real(dp), dimension(:), intent(in) :: dE
 real(dp), dimension(:), intent(in) :: phi
 real(dp), dimension(:), intent(out) :: E_bounded
 real(dp), dimension(:), intent(out) :: phi_bounded
+integer, intent(out) :: interval_init
 integer, intent(in) :: int_size
 integer :: n_max
+integer:: phimax_init
 
-E_bounded = E_bounds(n_max+1:n_max+1+int_size)
-phi_bounded = phi(2*n_max+1:(2*n_max+1)+(2*int_size)-1)
+phimax_init = MAXLOC(phi, DIM=1)
+interval_init = (phimax_init/2)-(int_size/2)
+
+
+E_bounded = E_bounds(interval_init+1:interval_init+1+int_size)
+phi_bounded = phi(2*interval_init+1:(2*interval_init+1)+(2*int_size)-1)
 
 end subroutine det_bounds
 
